@@ -1044,14 +1044,21 @@ async function openExpense(exp,newImages){
     const my=++reading,note=q('#on');
     try{
       note.textContent='🔍 Reading receipt…';
-      let text='';
-      for(const b of f.images.slice(0,2)){
-        if(b.ocrText){text+='\n'+b.ocrText;continue}
-        ocrProg=p=>{if(my===reading)note.textContent=`🔍 Reading receipt… ${Math.round(p*100)}%`};
-        text+='\n'+await ocrImage(b);
-      }
+      let text='',r,got=[];
+      await loadPackMeta();await loadOcrLast();
+      const cur0=f.cur,pk=pickLangs(cur0);
+      const langName=l=>(LANGS.find(x=>x.c===l)||{n:l}).n;
+      const run=async langs=>{let tx='';
+        for(const b of f.images.slice(0,2)){
+          if(b.ocrText){tx+='\n'+b.ocrText;continue}
+          ocrProg=p=>{if(my===reading)note.textContent=`🔍 Reading receipt (${langs.map(langName).join(', ')})… ${Math.round(p*100)}%`};
+          tx+='\n'+await ocrImage(b,langs);
+        }return tx};
+      text=await run(pk.langs);r=parseReceipt(text);
+      let used=pk.langs;
+      if(!r.amount&&!pk.full){const all=(S.ocrLangs||[]).filter(avail);used=all.length?all:['eng'];if(my===reading)note.textContent='🔍 Trying all chosen languages…';text=await run(used);r=parseReceipt(text)}
       if(my!==reading||!document.body.contains(s))return;
-      const r=parseReceipt(text),got=[];
+      if(r.amount&&SHARED_CUR.includes(cur0)){const d=detectLang(text,used);if(d&&ocrLast[cur0]!==d){ocrLast[cur0]=d;DB.put('kv',ocrLast,'ocrLast')}}
       if(r.amount&&!touched.has('fa')&&!num(f.amount)){q('#fa').value=String(r.amount);q('#fa').oninput({target:q('#fa')});q('#fa').classList.add('autof');got.push('amount')}
       if(r.cur&&!touched.has('fcur')&&S.currencies.includes(r.cur)&&r.cur!==f.cur){q('#fcur').value=r.cur;q('#fcur').onchange({target:q('#fcur')});q('#fcur').classList.add('autof');got.push('currency')}
       if(r.date&&!touched.has('fd')&&r.date!==f.date){q('#fd').value=r.date;q('#fd').onchange({target:q('#fd')});q('#fd').classList.add('autof');got.push('date')}
@@ -1198,9 +1205,9 @@ async function loadPackMeta(){packMeta=(await DB.get('kv','packmeta'))||{}}
 const packState=c=>BUILTIN.includes(c)?'built-in':(packMeta[c]?'downloaded':'none');
 function loadScript(src){return new Promise((res,rej)=>{if(document.querySelector(`script[data-s="${src}"]`))return res();const s=document.createElement('script');s.src=src;s.dataset.s=src;s.onload=res;s.onerror=()=>rej(new Error('Could not load '+src));document.head.append(s)})}
 let ocrW=null,ocrKey='',ocrProg=()=>{};
-async function ocrWorker(){
+async function ocrWorker(want){
   await loadPackMeta();
-  const langs=(S.ocrLangs||[]).filter(c=>packState(c)!=='none');if(!langs.length)langs.push('eng');
+  const langs=(want||S.ocrLangs||[]).filter(c=>packState(c)!=='none');if(!langs.length)langs.push('eng');
   const key=langs.join('+');
   if(ocrW&&ocrKey===key)return ocrW;
   if(ocrW){try{await ocrW.terminate()}catch(e){}ocrW=null}
@@ -1211,11 +1218,27 @@ async function ocrWorker(){
   ocrKey=key;return ocrW;
 }
 let ocrIdle=null;
-async function ocrImage(blob){
-  const w=await ocrWorker();
+async function ocrImage(blob,want){
+  const w=await ocrWorker(want);
   const r=await w.recognize(blob);
   clearTimeout(ocrIdle);ocrIdle=setTimeout(async()=>{if(ocrW){try{await ocrW.terminate()}catch(e){}ocrW=null;ocrKey=''}},90000);
   return r.data.text||'';
+}
+/* ---------- which language to read with ---------- */
+const CUR_LANG={JPY:'jpn',USD:'eng',GBP:'eng',AUD:'eng',CAD:'eng',NZD:'eng',INR:'eng',SGD:'eng',HKD:'eng',ZAR:'eng',SEK:'swe',NOK:'nor',DKK:'dan',ISK:'isl',PLN:'pol',CZK:'ces',HUF:'hun',RON:'ron',BGN:'bul',TRY:'tur',CNY:'chi_sim',KRW:'kor',RUB:'rus',UAH:'ukr',ILS:'heb',THB:'tha',VND:'vie',IDR:'ind',MYR:'msa',PHP:'eng',BRL:'por',MXN:'spa',ARS:'spa',CLP:'spa',COP:'spa',HRK:'hrv',RSD:'srp_latn',GEL:'kat',KZT:'rus',AED:'ara',SAR:'ara',EGP:'ara'};
+const SHARED_CUR=['EUR','CHF','CAD'];   // several languages: remember the last detected one
+const avail=c=>packState(c)!=='none';
+let ocrLast={};
+async function loadOcrLast(){ocrLast=(await DB.get('kv','ocrLast'))||{}}
+function pickLangs(cur){
+  const chosen=(S.ocrLangs||[]).filter(avail);
+  if(SHARED_CUR.includes(cur)){const l=ocrLast[cur];if(l&&avail(l))return{langs:[l],full:false}}
+  else if(CUR_LANG[cur]&&avail(CUR_LANG[cur]))return{langs:[CUR_LANG[cur]],full:false};
+  return{langs:chosen.length?chosen:['eng'],full:true};
+}
+const HINTS={deu:/\b(summe|mwst|datum|rechnung|vielen dank|zu zahlen|gesamt|betrag|kasse|beleg)\b/gi,fra:/\b(tva|merci|montant|à payer|facture|ticket|caisse|espèces|carte)\b/gi,ita:/\b(totale|iva|grazie|importo|scontrino|fattura|contanti|resto)\b/gi,eng:/\b(vat|thank you|amount|receipt|subtotal|balance|change|cash|tax)\b/gi};
+function detectLang(text,allowed){
+  let best=null,bn=0;for(const c of allowed){const re=HINTS[c];if(!re)continue;const n=(text.match(re)||[]).length;if(n>bn){bn=n;best=c}}return best;
 }
 /* ---------- receipt text → fields (rules for EN / DE / FR / IT) ---------- */
 function toAmount(s){
@@ -1634,8 +1657,8 @@ async function exportPdf(){
   }catch(err){console.error(err);bg.close();tell('PDF generation failed: '+err.message)}
 }
 
-const APP_VERSION='1.2.1';
-const CHANGELOG=[{"v":"1.2.1","d":"2026-11-05","n":["Phone bottom bar: app colors set to black (reinstall the app once to see it)"]},{"v":"1.2.0","d":"2026-11-05","n":["New home page: add a receipt to your last trip, open your trips or start a new one","Trips list is now its own page, newest first, with dates, receipt count and total","Photo editor simplified: drag a corner to fix perspective, drag a side to crop","Categories have icons; choose Other to type your own; edit categories and icons in Settings","Reads receipts offline (amount, currency, date, category guess) — suggestions only, you confirm","Language packs page: English, German, French and Italian built in, ~100 more downloadable","Backup: save everything as one ZIP and load it on another phone (replace or merge)","Export a ZIP with the summary PDF and every receipt as a separate JPEG","Pop-ups now say Insert instead of the web address","Bottom bar of the phone follows the chosen theme"]},{"v":"1.1.0","d":"2026-11-05","n":["Top bar with app name, version and a menu button for navigation","Settings reorganised: a short menu with a separate page for each group","New Appearance page: color themes and light / dark mode","Photo editor: perspective correction (drag the 4 corners)","Add PDF and image files as receipts (e.g. a train ticket from your email)","New receipts reuse the currency of the last receipt in the trip","Version number on the opening screen"]},{"v": "1.0.0", "d": "2026-11-05", "n": ["Renamed to Receipt Archive", "Version number and changelog in Settings", "Licensed under GPL-3.0", "Published on GitHub Pages so it can be installed on phones"]}, {"v": "0.3.0", "d": "2026-11-05", "n": ["Privacy information and license in Settings"]}, {"v": "0.2.0", "d": "2026-11-05", "n": ["Photo editor: crop, rotate and straighten after taking a picture", "Install button in Settings", "App icon and quick opening animation", "Layout fixes for phone screens"]}, {"v": "0.1.0", "d": "2026-11-05", "n": ["First version: receipts with photos, automatic exchange rates with manual override", "One-click PDF in the company format (report page plus numbered receipt scans)", "Settings for bank details, header fields and signature"]}];
+const APP_VERSION='1.3.0';
+const CHANGELOG=[{"v":"1.3.0","d":"2026-11-05","n":["Faster receipt reading: the language follows the currency (e.g. JPY reads Japanese, USD English)","For EUR and CHF the app remembers the last detected language and reuses it; if nothing is found it retries with all chosen languages"]},{"v":"1.2.1","d":"2026-11-05","n":["Phone bottom bar: app colors set to black (reinstall the app once to see it)"]},{"v":"1.2.0","d":"2026-11-05","n":["New home page: add a receipt to your last trip, open your trips or start a new one","Trips list is now its own page, newest first, with dates, receipt count and total","Photo editor simplified: drag a corner to fix perspective, drag a side to crop","Categories have icons; choose Other to type your own; edit categories and icons in Settings","Reads receipts offline (amount, currency, date, category guess) — suggestions only, you confirm","Language packs page: English, German, French and Italian built in, ~100 more downloadable","Backup: save everything as one ZIP and load it on another phone (replace or merge)","Export a ZIP with the summary PDF and every receipt as a separate JPEG","Pop-ups now say Insert instead of the web address","Bottom bar of the phone follows the chosen theme"]},{"v":"1.1.0","d":"2026-11-05","n":["Top bar with app name, version and a menu button for navigation","Settings reorganised: a short menu with a separate page for each group","New Appearance page: color themes and light / dark mode","Photo editor: perspective correction (drag the 4 corners)","Add PDF and image files as receipts (e.g. a train ticket from your email)","New receipts reuse the currency of the last receipt in the trip","Version number on the opening screen"]},{"v": "1.0.0", "d": "2026-11-05", "n": ["Renamed to Receipt Archive", "Version number and changelog in Settings", "Licensed under GPL-3.0", "Published on GitHub Pages so it can be installed on phones"]}, {"v": "0.3.0", "d": "2026-11-05", "n": ["Privacy information and license in Settings"]}, {"v": "0.2.0", "d": "2026-11-05", "n": ["Photo editor: crop, rotate and straighten after taking a picture", "Install button in Settings", "App icon and quick opening animation", "Layout fixes for phone screens"]}, {"v": "0.1.0", "d": "2026-11-05", "n": ["First version: receipts with photos, automatic exchange rates with manual override", "One-click PDF in the company format (report page plus numbered receipt scans)", "Settings for bank details, header fields and signature"]}];
 const LICENSE_TEXT="Receipt Archive\nCopyright (C) 2026 the Receipt Archive authors\n\nThis program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.\n\nThis program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.\n\nYou should have received a copy of the GNU General Public License along with this program (see the LICENSE file in the repository). If not, see https://www.gnu.org/licenses/gpl-3.0.html\n\nThird-party software included:\njsPDF (https://github.com/parallax/jsPDF), MIT License, Copyright (c) 2010-2021 James Hall; (c) 2015-2021 yWorks GmbH.\nPDF.js (https://github.com/mozilla/pdf.js), Apache License 2.0, Copyright Mozilla Foundation and contributors.\nTesseract.js (https://github.com/naptha/tesseract.js), Apache License 2.0, Copyright (c) 2018 tesseract.js contributors; Tesseract OCR engine and trained language data (Google / tessdata), Apache License 2.0.\nfflate (https://github.com/101arrowz/fflate), MIT License, Copyright (c) 2023 Arjun Barrett.";
 /* ---------- install ---------- */
 let deferredPrompt=null;

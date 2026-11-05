@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.0 - 2026-11-05
+- Faster receipt reading: the language follows the currency (e.g. JPY reads Japanese, USD English)
+- For EUR and CHF the app remembers the last detected language and reuses it; if nothing is found it retries with all chosen languages
+
 ## 1.2.1 - 2026-11-05
 - Phone bottom bar: app colors set to black (reinstall the app once to see it)
 
