@@ -11,4 +11,4 @@ Open https://dusiaclaw.github.io/ReceiptArchive/ in Chrome (Android) and use **S
 Edit `APP_VERSION` and `CHANGELOG` in `index.html` and `CHANGELOG.md` for each release. The app updates on the next online start.
 
 ## License
-GPL-3.0, see [LICENSE](LICENSE). Includes [jsPDF](https://github.com/parallax/jsPDF) (MIT).
+GPL-3.0, see [LICENSE](LICENSE). Includes [jsPDF](https://github.com/parallax/jsPDF) (MIT) and [PDF.js](https://github.com/mozilla/pdf.js) (Apache-2.0).

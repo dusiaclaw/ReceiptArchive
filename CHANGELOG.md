@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.1.0 - 2026-11-05
+- Top bar with app name, version and a menu button for navigation
+- Settings reorganised: a short menu with a separate page for each group
+- New Appearance page: color themes and light / dark mode
+- Photo editor: perspective correction (drag the 4 corners)
+- Add PDF and image files as receipts (e.g. a train ticket from your email)
+- New receipts reuse the currency of the last receipt in the trip
+- Version number on the opening screen
+
 ## 1.0.0 - 2026-11-05
 - Renamed to Receipt Archive
 - Version number and changelog in Settings
