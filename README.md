@@ -2,7 +2,7 @@
 
 Installable web app (Android and iPhone) to photograph receipts on business trips and generate, in one tap, the PDF expense report: a report page in the company format followed by the numbered receipt scans.
 
-**Privacy:** all data (bank details, receipts, photos) stays in the browser storage of your own device. There is no server. The only online request is the exchange rate lookup (frankfurter.dev, ECB rates: currency and date only).
+**Privacy:** all data (bank details, receipts, photos) stays in the browser storage of your own device. There is no server. Receipt reading (OCR) runs on the phone. Online requests: exchange rates (frankfurter.dev, currency and date only) and, only if you choose to download an extra language pack, that language file.
 
 ## Install on your phone
 Open https://dusiaclaw.github.io/ReceiptArchive/ in Chrome (Android) and use **Settings → Install app**, or the ⋮ menu → *Install app*. On iPhone use Safari → Share → *Add to Home Screen*.
@@ -11,4 +11,7 @@ Open https://dusiaclaw.github.io/ReceiptArchive/ in Chrome (Android) and use **S
 Edit `APP_VERSION` and `CHANGELOG` in `index.html` and `CHANGELOG.md` for each release. The app updates on the next online start.
 
 ## License
-GPL-3.0, see [LICENSE](LICENSE). Includes [jsPDF](https://github.com/parallax/jsPDF) (MIT) and [PDF.js](https://github.com/mozilla/pdf.js) (Apache-2.0).
+GPL-3.0, see [LICENSE](LICENSE). Includes [jsPDF](https://github.com/parallax/jsPDF) (MIT), [PDF.js](https://github.com/mozilla/pdf.js) (Apache-2.0), [Tesseract.js](https://github.com/naptha/tesseract.js) (Apache-2.0, files in `ocr/`) and [fflate](https://github.com/101arrowz/fflate) (MIT).
+
+## OCR files
+`ocr/` holds Tesseract.js, its WebAssembly core (~8 MB) and the built-in language files for English, German, French and Italian (~6.6 MB). Extra languages can be hosted in `ocr/lang/` as `<code>.traineddata.gz` and selected in Settings → Language packs.

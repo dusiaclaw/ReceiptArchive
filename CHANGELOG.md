@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.2.0 - 2026-11-05
+- New home page: add a receipt to your last trip, open your trips or start a new one
+- Trips list is now its own page, newest first, with dates, receipt count and total
+- Photo editor simplified: drag a corner to fix perspective, drag a side to crop
+- Categories have icons; choose Other to type your own; edit categories and icons in Settings
+- Reads receipts offline (amount, currency, date, category guess); suggestions only
+- Language packs page: English, German, French and Italian built in, ~100 more downloadable
+- Backup: save everything as one ZIP and load it on another phone (replace or merge)
+- Export a ZIP with the summary PDF and every receipt as a separate JPEG
+- Pop-ups now say "Insert" instead of the web address
+- Bottom bar of the phone follows the chosen theme
+
 ## 1.1.0 - 2026-11-05
 - Top bar with app name, version and a menu button for navigation
 - Settings reorganised: a short menu with a separate page for each group
