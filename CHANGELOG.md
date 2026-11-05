@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.2.1 - 2026-11-05
+- Phone bottom bar: app colors set to black (reinstall the app once to see it)
+
 ## 1.2.0 - 2026-11-05
 - New home page: add a receipt to your last trip, open your trips or start a new one
 - Trips list is now its own page, newest first, with dates, receipt count and total
