@@ -1,6 +1,13 @@
 {
- "version": "1.8.0",
+ "version": "1.8.1",
  "notes": [
+  {
+   "v": "1.8.1",
+   "d": "2026-11-06",
+   "n": [
+    "Receipt form: the whole date is visible again (narrower padding in the date and category fields)"
+   ]
+  },
   {
    "v": "1.8.0",
    "d": "2026-11-06",
@@ -38,13 +45,6 @@
    "n": [
     "Home page has four big buttons: Add receipt, Last trip, New trip, My trips",
     "App icon with a black outline (reinstall the app to see it on the home screen)"
-   ]
-  },
-  {
-   "v": "1.4.2",
-   "d": "2026-11-06",
-   "n": [
-    "A one-time “What’s new” window appears after the app has been updated"
    ]
   }
  ]

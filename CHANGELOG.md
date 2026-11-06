@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.8.1 - 2026-11-06
+- Receipt form: the whole date is visible again (narrower padding in the date and category fields)
+
 ## 1.8.0 - 2026-11-06
 - Short welcome card and a spotlight tour on a brand-new install (replay any time: ☰ menu > Show tutorial); the first screen is no longer the bank details
 - Your name and bank details are asked when you generate the PDF (only if missing), then the PDF continues
