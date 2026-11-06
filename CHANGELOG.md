@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.8.0 - 2026-11-06
+- Short welcome card and a spotlight tour on a brand-new install (replay any time: ☰ menu > Show tutorial); the first screen is no longer the bank details
+- Your name and bank details are asked when you generate the PDF (only if missing), then the PDF continues
+- Country field: type to search (accents ignored)
+- PDF layout: new Auto-small (fewest pages, smaller cells) and Custom (columns × rows, 1 to 30); captions shrink in small cells
+- Categories: icons in the category picker, press-and-hold drag to reorder, logical default order (transport, meals, hotel, other) applied once, Reset to default order button
+
 ## 1.7.0 - 2026-11-06
 - Close button (X) on every pop-up; forms with unsaved changes ask before discarding
 - The receipt form keeps Save and Delete always visible at the bottom; rarely used options are under More options

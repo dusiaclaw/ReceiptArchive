@@ -171,6 +171,13 @@ details.more summary::-webkit-details-marker{display:none}details.more summary::
 .upd-btn .ic{width:24px;height:24px;margin:0}
 .ab-title span.new{color:var(--accent);font-weight:700}
 .emcustom{display:flex;gap:8px;align-items:center;margin:12px 0}.emcustom input{flex:1;min-height:46px;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);font-size:20px}
+.cbox{position:relative}.csug{position:absolute;left:0;right:0;top:100%;z-index:30;max-height:200px;overflow:auto;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.18);margin-top:4px}.cs{display:flex;justify-content:space-between;width:100%;text-align:left;padding:12px 14px;border:0;border-bottom:1px solid var(--line);background:transparent;color:inherit;font:inherit;font-size:16px}.cs span{opacity:.6}.cs.none{opacity:.6}.cs:last-child{border-bottom:0}
+.catrow .grip{width:34px;flex:none;border:0;background:transparent;color:var(--muted);min-height:46px;touch-action:none;cursor:grab;padding:0}.catrow .grip .ic{width:20px;height:20px;margin:0}.catrow{-webkit-user-select:none;user-select:none}.catrow.dragging{background:var(--accent-soft);border-radius:12px;box-shadow:var(--shadow);outline:2px solid var(--accent)}
+.catpick{display:flex;align-items:center;gap:10px;width:100%;margin-top:4px;min-height:46px;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);font-size:16px;font-weight:400;color:var(--ink);text-align:left;cursor:pointer}.catpick .ic{width:22px;height:22px;margin:0;flex:none}.catpick .cn{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.catpick .nx{opacity:.5;transform:rotate(90deg)}#fc.autof+.catpick{border-color:var(--accent);background:var(--accent-soft)}
+.catlist button{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;padding:8px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface);font-size:16px;color:var(--ink);margin-bottom:8px;text-align:left}.catlist button.on{border-color:var(--accent);background:var(--accent-soft)}.catlist .ic{width:24px;height:24px;margin:0}
+.wel-bg{position:fixed;inset:0;z-index:5000;background:rgba(0,0,0,.55);display:grid;place-items:center;padding:20px}.wel{background:var(--bg);border-radius:20px;padding:22px 20px;max-width:420px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,.4)}.wel .ab-icon{width:72px;height:72px;margin:0 auto 10px}.wel .ab-icon svg{width:100%;height:100%}.wel h2{text-transform:none;letter-spacing:0;margin:0 0 12px;text-align:center;font-size:22px}.wel ul{list-style:none;margin:0 0 16px;padding:0}.wel li{display:flex;gap:12px;align-items:center;padding:8px 0;font-size:16px}.wel li .ic{width:24px;height:24px;color:var(--accent);flex:none;margin:0}
+.tour{position:fixed;inset:0;z-index:5000}.tour-hole{position:fixed;border-radius:16px;box-shadow:0 0 0 9999px rgba(0,0,0,.62),0 0 0 3px #f97316;transition:all .25s;pointer-events:none}.tour-tip{position:fixed;left:14px;right:14px;max-width:420px;margin:0 auto;background:var(--surface);color:var(--ink);border-radius:16px;padding:14px 16px;box-shadow:0 10px 34px rgba(0,0,0,.45)}.tour-tip b{display:block;font-size:17px;margin-bottom:4px}.tour-tip p{margin:0 0 12px;font-size:15px;line-height:1.4;color:var(--ink)}.tour-nav{display:flex;align-items:center;justify-content:space-between;gap:10px}.tour-tip:before{content:"";position:absolute;left:var(--ax,50%);width:16px;height:16px;background:var(--surface);transform:translateX(-50%) rotate(45deg)}.tour-tip[data-pos=below]:before{top:-8px}.tour-tip[data-pos=above]:before{bottom:-8px}
+.row>label.f:has(#fcb){flex:1.5}
 </style>
 </head>
 <body>
@@ -667,20 +674,24 @@ const DB={db:null,
 };
 
 /* ---------- state ---------- */
-const DEF_CATS=[['Train tickets','train'],['Restaurant/Food','food'],['Hotel','bed'],['Taxi','car'],['Internet/phone','phone'],['Flight','plane'],['Parking','parking'],['Other','package']].map(([name,icon])=>({name,icon}));
+const DEF_CATS=[['Train tickets','train'],['Flight','plane'],['Taxi','car'],['Parking','parking'],['Restaurant/Food','food'],['Hotel','bed'],['Internet/phone','phone'],['Other','package']].map(([name,icon])=>({name,icon}));
 const DEFAULTS={firstName:'',lastName:'',address:'',city:'',bank:'',bankAddress:'',bic:'',iban:'',account:'',costcenter:'',project:'',vat:'',voucherNo:'',
  home:'CHF',fee:0,currencies:['CHF','EUR','USD','GBP','SEK','JPY','AUD'],
  categories:DEF_CATS,payments:['CARD','CASH'],signature:'',stamp:true,theme:'teal',mode:'system',
- ocrAuto:true,ocrLangs:['eng','deu','fra','ita'],packSrc:'fast',packUrl:'',pdfLayout:'2x2',autoCrop:true,snap:true,iconStyle:'icons'};
+ ocrAuto:true,ocrLangs:['eng','deu','fra','ita'],packSrc:'fast',packUrl:'',pdfLayout:'2x2',pdfCols:2,pdfRows:2,autoCrop:true,snap:true,iconStyle:'icons'};
 let S={...DEFAULTS},trips=[],trip=null,exps=[],view='home',urls=[];
 const catIcon=n=>{const c=S.categories.find(c=>c.name.toLowerCase()===String(n).toLowerCase());return c?fixIcon(c.icon):'tag'};
 const migrateCats=cs=>(cs||[]).map(c=>typeof c==='string'?{name:c,icon:(DEF_CATS.find(d=>d.name.toLowerCase()===c.toLowerCase())||{icon:'tag'}).icon}:(c&&{...c,icon:fixIcon(c.icon)})).filter(c=>c&&c.name);
+const defOrder=cs=>{const di=n=>DEF_CATS.findIndex(d=>d.name.toLowerCase()===String(n).toLowerCase());
+  const known=cs.filter(c=>di(c.name)>=0&&di(c.name)<DEF_CATS.length-1).sort((a,b)=>di(a.name)-di(b.name));
+  const other=cs.filter(c=>di(c.name)===DEF_CATS.length-1),custom=cs.filter(c=>di(c.name)<0);return[...known,...custom,...other]};
 const catIc=n=>{const c=S.categories.find(c=>c.name.toLowerCase()===String(n).toLowerCase());return ICON_STYLE==='emoji'&&c&&c.emoji?emoSvg(c.emoji):ic(catIcon(n))};
 const catTile=n=>`<span class="ctile">${catIc(n)}</span>`;
 
 async function loadAll(){
   S={...DEFAULTS,...(await DB.get('kv','settings')||{})};
   syncIconStyle();S.categories=migrateCats(S.categories);if(!S.categories.length)S.categories=DEF_CATS.map(c=>({...c}));
+  if(S.catOrder!==2){S.categories=defOrder(S.categories);S.catOrder=2;await saveSettings()}
   trips=await DB.all('trips');
   const cur=await DB.get('kv','currentTrip');
   trip=trips.find(t=>t.id===cur)||null;
@@ -833,7 +844,7 @@ function tripDetails(t,isNew){
   const s=openSheet(`<h3>${isNew?'New trip':'Trip details'}</h3>
    <label class="f">Name (shown on each receipt page)<input id="tn" value="${esc(t.name||'')}" placeholder="e.g. Intergeo 2026"></label>
    <div class="row"><label class="f">From<input type="date" id="tf" value="${esc(t.from||'')}"></label><label class="f">To<input type="date" id="tt" value="${esc(t.to||'')}"></label></div>
-   <label class="f">Country<select id="tc"><option value="">— not set —</option>${COUNTRIES.map(c=>`<option value="${esc(c.n)}" ${t.country===c.n?'selected':''}>${esc(c.n)} (${esc(c.cur)})</option>`).join('')}</select></label>
+   <label class="f">Country<div class="cbox"><input id="tcs" autocomplete="off" autocapitalize="off" placeholder="Type to search (not set)" value="${esc(t.country?t.country+' ('+((countryOf(t.country)||{}).cur||'')+')':'')}"><input type="hidden" id="tc" value="${esc(t.country||'')}"><div class="csug" id="tsg" hidden></div></div></label>
    <div class="hint">New receipts of this trip start with the country’s currency, and receipts are read in its language.</div>
    ${isNew?'':`<label class="f">Status<select id="ts">${STATUS.map(([k,n])=>`<option value="${k}" ${tripStatus(t)===k?'selected':''}>${n}</option>`).join('')}</select></label>`}
    <button class="btn primary block" id="tsv">Save</button><div style="height:10px"></div><button class="btn block" id="tcn">Cancel</button>`);
@@ -843,6 +854,16 @@ function tripDetails(t,isNew){
   const q=x=>s.querySelector(x);
   q('#tcn').onclick=()=>s.askClose();
   if(isNew)setTimeout(()=>q('#tn').focus(),60);
+  const lbl=n=>{const c=countryOf(n);return c?c.n+' ('+c.cur+')':''};
+  const norm=x=>String(x).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+  const ci=q('#tcs'),ch=q('#tc'),sg=q('#tsg');
+  const showSug=()=>{const k=norm(ci.value.replace(/\s*\([A-Z]{3}\)\s*$/,'')).trim();
+    const list=COUNTRIES.filter(c=>!k||norm(c.n).includes(k)||norm(c.cur).startsWith(k)).sort((a,b)=>(norm(a.n).startsWith(k)?0:1)-(norm(b.n).startsWith(k)?0:1)).slice(0,30);
+    sg.innerHTML=list.length?list.map(c=>`<button type="button" class="cs" data-n="${esc(c.n)}">${esc(c.n)} <span>${esc(c.cur)}</span></button>`).join(''):'<div class="cs none">No match</div>';
+    sg.hidden=false;sg.querySelectorAll('.cs[data-n]').forEach(b=>b.onmousedown=b.ontouchstart=ev=>{ev.preventDefault();ch.value=b.dataset.n;ci.value=lbl(b.dataset.n);sg.hidden=true;dirt=true;ci.blur()})};
+  ci.onfocus=()=>{ci.select();showSug()};
+  ci.oninput=()=>{if(!ci.value.trim())ch.value='';showSug()};
+  ci.onblur=()=>setTimeout(()=>{sg.hidden=true;ci.value=lbl(ch.value)},120);
   q('#tsv').onclick=async()=>{
     const nm=q('#tn').value.trim(),f=q('#tf').value,to=q('#tt').value;
     if(!nm){toast('Enter a name');return}
@@ -932,7 +953,7 @@ const totalAll=()=>exps.reduce((a,e)=>a+e.chf,0);
 
 function openDrawer(){
   const bg=document.createElement('div');bg.className='drawer-bg';
-  const items=[['home','home','Home'],['trip','receipt','Receipts of current trip'],['trips','luggage','My trips'],['stats','chart','Statistics'],['pdf','doc','Generate PDF'],['settings','settings','Settings'],['log','history','Changelog'],['about','info','About & license']];
+  const items=[['home','home','Home'],['trip','receipt','Receipts of current trip'],['trips','luggage','My trips'],['stats','chart','Statistics'],['pdf','doc','Generate PDF'],['settings','settings','Settings'],['tour','bulb','Show tutorial'],['log','history','Changelog'],['about','info','About & license']];
   bg.innerHTML=`<div class="drawer"><div class="dr-head"><div class="ab-icon">${iconSvg()}</div><div><b>Receipt Archive</b><div class="sub">Version ${APP_VERSION}</div></div></div>`+
    items.map(i=>`<button class="dr-item" data-a="${i[0]}"><span>${ic(i[1])}</span>${i[2]}</button>`).join('')+'</div>';
   document.body.append(bg);
@@ -945,6 +966,7 @@ function openDrawer(){
     else if(a==='stats')nav('stats');
     else if(a==='pdf'){if(!trip||!exps.length)toast('Add a receipt first');else{if(view!=='trip')nav('trip');exportPdf()}}
     else if(a==='settings')nav('settings');
+    else if(a==='tour')startTour();
     else if(a==='log')openChangelog();
     else if(a==='about')nav('settings','about')});
 }
@@ -1365,7 +1387,7 @@ async function openExpense(exp,newImages){
    <div class="row" style="margin-bottom:12px"><button class="btn small" id="pc">${ic('camera')}Photo</button><button class="btn small" id="pg">${ic('photo')}Gallery</button><button class="btn small" id="pf">${ic('folder')}File</button></div>
    <div class="ocrnote" id="on"></div>
    <div class="row"><label class="f">Date<input type="date" id="fd" value="${f.date}"></label>
-   <label class="f">Category<select id="fc">${catOpts}</select></label></div>
+   <label class="f">Category<select id="fc" style="display:none">${catOpts}</select><button type="button" class="catpick" id="fcb"></button></label></div>
    <label class="f" id="cuw" style="display:none">Custom category<input id="cu" placeholder="e.g. Conference fee"></label>
    <label class="f">Note (optional)<input id="fn" value="${esc(f.note)}" placeholder="e.g. Lunch with client"></label>
    <div class="row"><label class="f">Currency<select id="fcur">${opt(S.currencies,f.cur)}</select></label>
@@ -1428,7 +1450,12 @@ async function openExpense(exp,newImages){
   q('#fa').oninput=e=>{f.amount=e.target.value;if(f.manual&&q('#ft').dataset.t==='1'){const a=num(f.amount),t=num(q('#ft').value);if(a>0&&t>0){f.rate=t/a;q('#fr').value=rateStr(f.rate)}}else upd()};
   q('#fr').oninput=e=>{f.rate=e.target.value;f.manual=true;q('#ft').dataset.t='';upd();q('#fi').textContent='Manual rate'};
   q('#ft').oninput=e=>{const t=num(e.target.value),a=num(f.amount);e.target.dataset.t='1';f.manual=true;f.chf=t;if(a>0&&t>0){f.rate=t/a;q('#fr').value=rateStr(f.rate)}q('#fi').textContent='Rate calculated from your total'};
-  q('#fc').onchange=()=>{q('#cuw').style.display=q('#fc').value==='__other__'?'':'none';if(q('#fc').value==='__other__')q('#cu').focus()};
+  const syncCat=()=>{const v=q('#fc').value;q('#fcb').innerHTML=(v==='__other__'?ic('tag'):catIc(v))+`<span class="cn">${esc(v==='__other__'?'Other (type your own)…':v)}</span><span class="nx">${ic('next')}</span>`};
+  q('#fc').onchange=()=>{syncCat();q('#cuw').style.display=q('#fc').value==='__other__'?'':'none';if(q('#fc').value==='__other__')q('#cu').focus()};
+  syncCat();
+  q('#fcb').onclick=()=>{const cur=q('#fc').value;
+    const ps=openSheet(`<h3>Category</h3><div class="catlist">${[...q('#fc').options].map(o=>`<button type="button" data-v="${esc(o.value)}" class="${o.value===cur?'on':''}">${o.value==='__other__'?ic('tag'):catIc(o.value)}<span>${esc(o.value==='__other__'?'Other (type your own)…':o.textContent)}</span></button>`).join('')}</div>`);
+    ps.querySelectorAll('.catlist button').forEach(b=>b.onclick=()=>{q('#fc').value=b.dataset.v;q('#fc').dispatchEvent(new Event('change'));ps.close()})};
   ['fd','fc','fcur','fa'].forEach(id=>q('#'+id).addEventListener('change',()=>{touched.add(id);q('#'+id).classList.remove('autof')}));
   q('#fa').addEventListener('input',()=>{touched.add('fa');q('#fa').classList.remove('autof')});
 
@@ -1734,7 +1761,7 @@ function settingsView(){
   const pg=SET_PAGES.find(p=>p[0]===sub)||SET_PAGES[0];
   return `<div class="pagehead"><button class="back" id="backBtn" aria-label="Back">${ic('back')}</button><h1>${pg[2]}</h1></div>`+pageBody(pg[0]);
 }
-const LAYOUTS=[['2x2','Fixed 2 × 2 (default)','4 receipts per page, as in the accounting example'],['2x3','Fixed 2 × 3','6 receipts per page, smaller'],['1x2','1 × 2','2 receipts per page, for readable invoices'],['1x1','1 per page','Every receipt on its own page'],['auto','Auto','Fits the page to each receipt’s shape: narrow till slips side by side, bigger cells for A4-like documents']];
+const LAYOUTS=[['2x2','Fixed 2 × 2 (default)','4 receipts per page, as in the accounting example'],['2x3','Fixed 2 × 3','6 receipts per page, smaller'],['1x2','1 × 2','2 receipts per page, for readable invoices'],['1x1','1 per page','Every receipt on its own page'],['auto','Auto','Fits the page to each receipt’s shape: narrow till slips side by side, bigger cells for A4-like documents'],['autosmall','Auto-small','Like Auto, but uses as few pages as possible: more receipts per page, smaller cells (never below about 40 × 40 mm)'],['custom','Custom','You choose the number of columns and rows']];
 function langRows(filter){
   const f=filter.trim().toLowerCase();
   return LANGS.filter(l=>!f||(l.n+' '+l.r+' '+l.c).toLowerCase().includes(f)).map(l=>{
@@ -1755,8 +1782,8 @@ function pageBody(id){
     <label class="f">Home currency (report total)<input data-k="home" value="${esc(S.home)}" autocapitalize="characters" maxlength="3"></label>
     <label class="f">Bank / card fee on foreign currency (%)<input data-k="fee" inputmode="decimal" value="${S.fee}"></label>
     <label class="f">Currencies offered (comma separated)<input data-list="currencies" value="${esc(S.currencies.join(', '))}"></label></div>`;
-  if(id==='lists')return `<div class="card"><div class="sub" style="margin-bottom:10px">Tap the icon to change it. The PDF shows the name only.</div><div id="cats">${S.categories.map((c,i)=>`<div class="catrow"><button class="em" data-ei="${i}" aria-label="Change icon">${ICON_STYLE==='emoji'&&c.emoji?emoSvg(c.emoji):ic(c.icon)}</button><input class="nm" data-ci="${i}" value="${esc(c.name)}" aria-label="Category name"><button class="btn small danger" data-cd="${i}" aria-label="Delete">${ic('x')}</button></div>`).join('')}</div>
-    <button class="btn small block" id="catAdd">${ic('plus')}Add category</button></div>
+  if(id==='lists')return `<div class="card"><div class="sub" style="margin-bottom:10px">Tap the icon to change it. Press and hold the ☰ handle (or a row) and drag to change the order. The PDF shows the name only.</div><div id="cats">${S.categories.map((c,i)=>`<div class="catrow" data-ri="${i}"><button class="grip" data-gr="${i}" aria-label="Move (press and drag)">${ic('menu')}</button><button class="em" data-ei="${i}" aria-label="Change icon">${ICON_STYLE==='emoji'&&c.emoji?emoSvg(c.emoji):ic(c.icon)}</button><input class="nm" data-ci="${i}" value="${esc(c.name)}" aria-label="Category name"><button class="btn small danger" data-cd="${i}" aria-label="Delete">${ic('x')}</button></div>`).join('')}</div>
+    <button class="btn small block" id="catAdd">${ic('plus')}Add category</button><div style="height:8px"></div><button class="btn small block" id="catReset">Reset to default order</button></div>
     <div class="card"><label class="f" style="margin:0">Payment methods (comma separated)<input data-list="payments" value="${esc(S.payments.join(', '))}"></label></div>`;
   if(id==='signature')return `<div class="card"><canvas id="sig"></canvas><div class="row" style="margin-top:10px"><button class="btn small" id="sigClr">Clear</button>
     <label class="sub" style="flex:2"><input type="checkbox" id="stamp" ${S.stamp?'checked':''}> Stamp on “Employee visa”</label></div></div>`;
@@ -1771,7 +1798,7 @@ function pageBody(id){
     <div class="sub">While you drag a corner or side, a round magnifier shows the spot above your finger.</div>`;
   if(id==='pdf')return `<div class="card"><div class="sub" style="margin-bottom:10px">Receipt pages after the report page. Every receipt keeps its number and caption.</div>`+
     LAYOUTS.map(([k,n,d])=>`<label class="card layrow" style="padding:12px"><input type="radio" name="lay" value="${k}" ${(S.pdfLayout||'2x2')===k?'checked':''}><span><b>${n}</b><br><span class="sub">${d}</span></span></label>`).join('')+
-    `</div><div class="sub">In the receipt form you can switch on “Print on its own page” for a single big invoice.</div>`;
+    `<div class="card" id="custBox" style="${S.pdfLayout==='custom'?'':'display:none'}"><div class="row"><label class="f" style="margin:0">Columns (1–30)<input type="number" inputmode="numeric" min="1" max="30" step="1" id="pCols" value="${customGrid()[0]}"></label><label class="f" style="margin:0">Rows (1–30)<input type="number" inputmode="numeric" min="1" max="30" step="1" id="pRows" value="${customGrid()[1]}"></label></div><div class="hint" id="custInfo"></div></div></div><div class="sub">In the receipt form you can switch on “Print on its own page” for a single big invoice.</div>`;
   if(id==='langs')return `<div class="card"><label class="sub" style="display:flex;gap:10px;align-items:center"><input type="checkbox" id="ocrAuto" ${S.ocrAuto?'checked':''} style="width:22px;height:22px"> Read receipts automatically (amount, currency, date, category)</label>
       <div class="sub" style="margin-top:8px">Runs on your phone, no internet needed. Results are only suggestions — always check them. English, German, French and Italian are built in. Amount, date and currency are found in any language; category guessing works for EN / DE / FR / IT.</div></div>
     <div class="card"><label class="f" style="margin:0">Download packs from<select id="packSrc">
@@ -1807,8 +1834,9 @@ async function whatsNew(isFirstRun){
   const items=CHANGELOG.filter(c=>!seen||verGt(c.v,seen)).slice(0,3);
   if(!items.length)return;
   const h=items.map(c=>`<div style="margin-bottom:12px"><b>${esc(c.v)}</b> <span class="sub">· ${esc(c.d)}</span><ul style="margin:6px 0 0;padding-left:20px">${c.n.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`).join('');
-  const sh=openSheet(`<h3>Updated to version ${esc(APP_VERSION)}</h3><div style="max-height:55vh;overflow:auto;margin-bottom:12px">${h}</div><button class="btn primary block" id="wx">Got it</button>`);
+  const sh=openSheet(`<h3>Updated to version ${esc(APP_VERSION)}</h3><div style="max-height:55vh;overflow:auto;margin-bottom:12px">${h}</div><button class="btn primary block" id="wx">Got it</button><div style="height:8px"></div><button class="btn block" id="wtr">${ic('bulb')}Show the quick tour</button>`);
   sh.querySelector('#wx').onclick=()=>sh.close();
+  sh.querySelector('#wtr').onclick=()=>{sh.close();startTour()};
 }
 function openChangelog(){
   const h=CHANGELOG.map(c=>`<div style="margin-bottom:14px"><b>${esc(c.v)}</b> <span class="sub">· ${esc(c.d)}</span><ul style="margin:6px 0 0;padding-left:20px">${c.n.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`).join('');
@@ -1902,6 +1930,26 @@ function bindCats(){
     if(S.categories.length<=1){toast('Keep at least one category');return}
     const c=S.categories[+b.dataset.cd];if(!await askYes(`Delete category “${c.name}”? Existing receipts keep their text.`,'Delete',true))return;
     S.categories.splice(+b.dataset.cd,1);save();render()});
+  $('#catReset').onclick=async()=>{if(!await askYes('Put the categories back in the default order? Your own categories stay, before “Other”.','Reset'))return;S.categories=defOrder(S.categories);save();render()};
+  /* press-and-hold drag to reorder */
+  const box=$('#cats');let drag=null,timer=null,sy=0,pid=null;
+  const startDrag=row=>{drag=row;row.classList.add('dragging');try{navigator.vibrate&&navigator.vibrate(20)}catch(e){}};
+  const endDrag=()=>{clearTimeout(timer);timer=null;if(!drag)return;const row=drag;drag=null;row.classList.remove('dragging');
+    const order=[...box.querySelectorAll('.catrow')].map(r=>+r.dataset.ri);const old=S.categories;
+    if(order.some((v,i)=>v!==i)){S.categories=order.map(i=>old[i]);save();render()}};
+  const moveDrag=y=>{if(!drag)return;const rows=[...box.querySelectorAll('.catrow')].filter(r=>r!==drag);
+    for(const r of rows){const b=r.getBoundingClientRect();if(y>b.top&&y<b.bottom){const mid=b.top+b.height/2;
+      if(y<mid&&r.previousElementSibling!==drag)box.insertBefore(drag,r);else if(y>=mid&&r.nextElementSibling!==drag)box.insertBefore(drag,r.nextElementSibling);break}}
+    const bt=box.getBoundingClientRect();if(y<80)scrollBy(0,-12);else if(y>innerHeight-80)scrollBy(0,12)};
+  box.querySelectorAll('.catrow').forEach(row=>{
+    row.addEventListener('pointerdown',ev=>{if(ev.target.closest('input'))return;const isGrip=!!ev.target.closest('.grip');sy=ev.clientY;pid=ev.pointerId;
+      clearTimeout(timer);timer=setTimeout(()=>startDrag(row),isGrip?60:380)});
+    row.addEventListener('pointermove',ev=>{if(!drag&&timer&&Math.abs(ev.clientY-sy)>10&&!ev.target.closest('.grip')){clearTimeout(timer);timer=null}});
+  });
+  addEventListener('pointermove',ev=>{if(drag){ev.preventDefault();moveDrag(ev.clientY)}},{passive:false});
+  addEventListener('touchmove',ev=>{if(drag)ev.preventDefault()},{passive:false});
+  ['pointerup','pointercancel'].forEach(t=>addEventListener(t,endDrag));
+  box.addEventListener('contextmenu',ev=>{if(drag||timer)ev.preventDefault()});
   $('#catAdd').onclick=async()=>{const nm=await askText('New category name');if(!nm||!nm.trim())return;
     if(S.categories.some(x=>x.name.toLowerCase()===nm.trim().toLowerCase())){toast('That category already exists');return}
     const e=await EMOJI_PICK();S.categories.push({name:nm.trim(),icon:e||'tag'});save();render()};
@@ -1919,7 +1967,14 @@ function bindSettings(){
   if(sub==='signature')initSig();
   if(sub==='lists')bindCats();
   if(sub==='photos'){$('#optAuto').onchange=e=>{S.autoCrop=e.target.checked;saveSettings()};$('#optSnap').onchange=e=>{S.snap=e.target.checked;saveSettings()}}
-  if(sub==='pdf')app.querySelectorAll('[name=lay]').forEach(r=>r.onchange=()=>{S.pdfLayout=r.value;saveSettings()});
+  if(sub==='pdf'){
+    app.querySelectorAll('[name=lay]').forEach(r=>r.onchange=()=>{S.pdfLayout=r.value;saveSettings();$('#custBox').style.display=r.value==='custom'?'':'none'});
+    const info=()=>{const[c,r]=customGrid();const w=190/c,h=PG_H/r;$('#custInfo').textContent=`Each cell is about ${w.toFixed(0)} × ${h.toFixed(0)} mm.`+(Math.min(w,h)<40?' Very small cells make receipts hard to read when printed.':'')};
+    const chk=(el,key)=>el.onchange=()=>{const t=el.value.trim(),v=Number(t);
+      if(!t||!Number.isInteger(v)||v<1||v>30){toast('Enter a whole number from 1 to 30');el.value=customGrid()[key==='pdfCols'?0:1];return}
+      S[key]=v;saveSettings();info()};
+    chk($('#pCols'),'pdfCols');chk($('#pRows'),'pdfRows');info();
+  }
   if(sub==='langs'){loadPackMeta().then(()=>{if(view==='settings'&&sub==='langs'){$('#langList').innerHTML=langRows('');bindLangs()}})}
   if(sub==='backup'){$('#bkSave').onclick=saveBackup;$('#bkLoad').onclick=()=>$('#bkFile').click();$('#bkFile').onchange=e=>{const f=e.target.files[0];e.target.value='';if(f)loadBackup(f)}}
   if(sub==='appearance'){
@@ -2179,10 +2234,18 @@ const MIX_A={slots:[[10,PG_TOP,190,PG_HALF],[10,PG_TOP+PG_HALF,95,PG_HALF],[105,
 const MIX_B={slots:[[10,PG_TOP,95,PG_HALF],[105,PG_TOP,95,PG_HALF],[10,PG_TOP+PG_HALF,190,PG_HALF]],lines:[[10,PG_TOP,200,PG_TOP],[10,PG_TOP+PG_HALF,200,PG_TOP+PG_HALF],[10,PG_TOP+2*PG_HALF,200,PG_TOP+2*PG_HALF],[105,PG_TOP,105,PG_TOP+PG_HALF]]};
 const FIXED_TPL={'2x2':gridT(2,2),'2x3':gridT(2,3),'1x2':gridT(1,2),'1x1':gridT(1,1)};
 const AUTO_TPL=[gridT(1,1),gridT(1,2),gridT(2,1),gridT(3,1),gridT(2,2),gridT(3,2),gridT(2,3),MIX_A,MIX_B,gridT(1,3)];
-const capLinesOf=c=>c.k===0?captionLines(c.e).length:1;
+/* caption text and sizes for a cell: shrinks and shortens when the cell is small */
+function capInfo(c,slot){
+  const f=Math.min(1,slot[2]/95,slot[3]/91.7);
+  let lines;
+  if(c.k!==0)lines=['(continued)'];
+  else if(f<.8){const e=c.e;lines=[`${dmy(e.date)} · ${e.category}`,`${e.amount} ${e.cur}${e.cur!==S.home?' = '+e.chf.toFixed(2)+' '+S.home:''}`];if(exRatio(e))lines.push(`Claimed: ${claimOrig(e).toFixed(2)} ${e.cur}`)}
+  else lines=captionLines(c.e);
+  return{lines,fs:6.8*Math.max(.62,f),ls:3.1*Math.max(.62,f),nfs:8*Math.max(.7,f),top:Math.max(5,8*Math.max(.62,f)+.5)};
+}
 /* area (mm²) the receipt image gets in a slot */
 function cellFit(c,slot){
-  const aw=slot[2]-6,ah=slot[3]-(8+capLinesOf(c)*3.1+2)-3;if(aw<=0||ah<=0)return 0;
+  const ci=capInfo(c,slot),aw=slot[2]-6,ah=slot[3]-(ci.top+ci.lines.length*ci.ls+2)-3;if(aw<=0||ah<=0)return 0;
   const r=c.dim?c.dim[0]/c.dim[1]:.7,w=Math.min(aw,ah*r);return w*(w/r);
 }
 /* Auto: pick the template that gives the next receipts big, readable cells and fills the page */
@@ -2196,12 +2259,26 @@ function bestTemplate(list){
   }
   return best;
 }
+const customGrid=()=>{const c=Math.round(Number(S.pdfCols)),r=Math.round(Number(S.pdfRows));return[c>=1&&c<=30?c:2,r>=1&&r<=30?r:2]};
+/* Auto-small: the grid with the fewest pages (cells never below about 40 x 40 mm), then the biggest receipts */
+const MIN_CELL=40;
+function smallTemplate(list){
+  let best=gridT(1,1),bp=1e9,bv=-1;const n=list.length;
+  for(let cols=1;cols<=5;cols++)for(let rows=1;rows<=7;rows++){
+    if(190/cols<MIN_CELL||PG_H/rows<MIN_CELL)continue;
+    const t=gridT(cols,rows),k=cols*rows,pages=Math.ceil(n/k);let v=0;
+    for(let i=0;i<n;i++)v+=cellFit(list[i],t.slots[i%k]);v/=n;
+    if(pages<bp||(pages===bp&&v>bv+1e-9)){bp=pages;bv=v;best=t}
+  }
+  return best;
+}
 function planPages(cells,layout){
   const pages=[];let i=0;
   while(i<cells.length){
     if(cells[i].e.ownPage){pages.push({tpl:FIXED_TPL['1x1'],cells:[cells[i]]});i++;continue}
-    let run=0;while(i+run<cells.length&&!cells[i+run].e.ownPage&&run<6)run++;
-    const tpl=layout==='auto'?bestTemplate(cells.slice(i,i+run)):(FIXED_TPL[layout]||FIXED_TPL['2x2']);
+    const cc=customGrid(),lim=layout==='custom'?cc[0]*cc[1]:layout==='autosmall'?1e9:6;
+    let run=0;while(i+run<cells.length&&!cells[i+run].e.ownPage&&run<lim)run++;
+    const tpl=layout==='auto'?bestTemplate(cells.slice(i,i+run)):layout==='autosmall'?smallTemplate(cells.slice(i,i+run)):layout==='custom'?gridT(cc[0],cc[1]):(FIXED_TPL[layout]||FIXED_TPL['2x2']);
     const n=Math.min(tpl.slots.length,run);
     pages.push({tpl,cells:cells.slice(i,i+n)});i+=n;
   }
@@ -2216,7 +2293,7 @@ async function makeDoc(prog,reportOnly){
   const cells=[];exps.forEach((e,i)=>{const imgs=e.images&&e.images.length?e.images:[null];imgs.forEach((b,k)=>cells.push({e,no:i+1,b,k,n:imgs.length}))});
   const layout=S.pdfLayout||'2x2';let pages=[];
   if(!reportOnly){
-    if(layout==='auto'){prog('Measuring receipts');for(const c of cells){c.dim=null;if(c.b){try{c.dim=await blobDims(c.b)}catch(e){}}}}
+    if(layout==='auto'||layout==='autosmall'){prog('Measuring receipts');for(const c of cells){c.dim=null;if(c.b){try{c.dim=await blobDims(c.b)}catch(e){}}}}
     pages=planPages(cells,layout);
   }
   window.__lastPlan=pages;
@@ -2229,10 +2306,11 @@ async function makeDoc(prog,reportOnly){
     doc.setDrawColor(0);doc.setLineWidth(.3);
     const pg=pages[p];pg.tpl.lines.forEach(l=>doc.line(l[0],l[1],l[2],l[3]));
     for(let i=0;i<pg.cells.length;i++){const c=pg.cells[i],[x,y,w,h]=pg.tpl.slots[i];
-      doc.setFont('helvetica','bold');doc.setFontSize(8);doc.text(String(c.no)+(c.n>1?` (${c.k+1}/${c.n})`:''),x+3,y+4.5);
-      doc.setFont('helvetica','normal');doc.setFontSize(6.8);
-      const L=c.k===0?captionLines(c.e):['(continued)'];L.forEach((l,j)=>doc.text(doc.splitTextToSize(l,w-7)[0],x+3,y+8+j*3.1));
-      const it=y+8+L.length*3.1+2,ah=y+h-it-3,aw=w-6;
+      const ci=capInfo(c,[x,y,w,h]);
+      doc.setFont('helvetica','bold');doc.setFontSize(ci.nfs);doc.text(String(c.no)+(c.n>1?` (${c.k+1}/${c.n})`:''),x+3,y+4.5);
+      doc.setFont('helvetica','normal');doc.setFontSize(ci.fs);
+      const L=ci.lines;L.forEach((l,j)=>doc.text(doc.splitTextToSize(l,w-7)[0],x+3,y+ci.top+j*ci.ls));
+      const it=y+ci.top+L.length*ci.ls+2,ah=y+h-it-3,aw=w-6;
       if(c.b){const d=await blobToDataURL(c.b);const[iw,ih]=c.dim||await imgDims(d);const k=Math.min(aw/iw,ah/ih);const iw2=iw*k,ih2=ih*k;
         doc.addImage(d,'JPEG',x+3+(aw-iw2)/2,it,iw2,ih2,undefined,'FAST')}
       else{doc.setTextColor(120);doc.text('(no receipt image)',x+3,it+4);doc.setTextColor(0)}
@@ -2251,9 +2329,26 @@ async function buildZip(withFull,prog){
   if(withFull){prog('Full PDF');files[base+'.pdf']=[new Uint8Array((await makeDoc(prog,false)).doc.output('arraybuffer')),{level:0}]}
   return new Blob([zipSync(files)],{type:'application/zip'});
 }
+/* employee and bank details are asked when the PDF is made (only if something is missing) */
+function askDetails(){
+  return new Promise(res=>{
+    const f=(k,l,x='')=>`<label class="f">${l}<input data-dk="${k}" value="${esc(S[k]||'')}" ${x}></label>`;
+    const s=openSheet(`<h3>Your details for the report</h3><div class="hint" style="margin:0 0 10px">They are printed on the report page and saved on this phone. You can change them later in Settings &gt; Employee &amp; bank.</div>
+      <div class="row">${f('firstName','First name','autocomplete="given-name"')}${f('lastName','Last name','autocomplete="family-name"')}</div>
+      ${f('address','Address','autocomplete="street-address"')}${f('city','City')}${f('bank','Bank')}${f('bankAddress','Bank address *')}${f('bic','BIC / SWIFT *','autocapitalize="characters"')}${f('iban','IBAN / Account *','autocapitalize="characters"')}
+      <div class="sbar" style="display:block"><button class="btn primary block" id="dsv">Save and continue</button><div style="height:8px"></div><button class="btn block" id="dsk">Skip, generate anyway</button></div>`);
+    s.dataset.lock='1';let done=false;
+    s.onDismiss=()=>{if(!done)res(false)};
+    s.querySelector('#dsv').onclick=async()=>{s.querySelectorAll('[data-dk]').forEach(i=>{S[i.dataset.dk]=i.value.trim()});
+      const miss=['firstName','lastName','bank','bankAddress','bic','iban'].filter(k=>!S[k]);
+      await saveSettings();if(miss.length&&!await dlg({text:'Still empty: '+miss.join(', ')+'.\nContinue anyway?',ok:'Continue'}))return;
+      done=true;s.close();res(true)};
+    s.querySelector('#dsk').onclick=()=>{done=true;s.close();res(true)};
+  });
+}
 async function exportPdf(){
-  const missing=[['firstName','first name'],['lastName','last name'],['bank','bank'],['bankAddress','bank address'],['bic','BIC'],['iban','IBAN']].filter(([k])=>!S[k]).map(x=>x[1]);
-  if(missing.length&&!await dlg({text:'Settings are missing: '+missing.join(', ')+'.\nGenerate the PDF anyway?',ok:'Generate anyway'}))return;
+  const need=['firstName','lastName','bank','bankAddress','bic','iban'];
+  if(need.some(k=>!S[k])){const r=await askDetails();if(!r)return}
   const want=await dlg({text:'File name (without .pdf):',input:true,value:trip.fileName||suggestBase(),ok:'Create PDF'});
   if(want===null)return;
   curBase=cleanFile(want)||suggestBase();
@@ -2285,8 +2380,59 @@ async function exportPdf(){
   }catch(err){console.error(err);bg.close();tell('PDF generation failed: '+err.message)}
 }
 
-const APP_VERSION='1.7.0';
-const CHANGELOG=[{"v": "1.7.0", "d": "2026-11-06", "n": ["Close button (X) on every pop-up; forms with unsaved changes ask before discarding", "The receipt form keeps Save and Delete always visible at the bottom; rarely used options are under More options", "Report: page 1 now looks like the company template; with more than 20 receipts, page 1 has no signature and says the table continues, later pages carry a short header and the signature and total are on the last page", "You can edit the file name before the PDF or ZIP is created (suggested: YearMonth_TripName)", "When online, the app tells you if a new version is available (popup at each start, a refresh button and the new version number in the top bar)", "Settings > Appearance: switch all icons to emoji and back"]},{"v":"1.6.0","d":"2026-11-06","n":["Icons instead of emojis everywhere in the app; categories can be given any of 44 icons (your existing categories keep the closest matching icon)","Two sample trips (202610 Zürich and 202611 Espoo) with fake receipts marked SAMPLE come with a fresh install; delete them any time in My trips"]},{"v":"1.5.0","d":"2026-11-06","n":["Home page has four big buttons: Add receipt, Last trip, New trip, My trips","App icon with a black outline (reinstall the app to see it on the home screen)"]},{"v":"1.4.2","d":"2026-11-06","n":["A one-time “What’s new” window appears after the app has been updated"]},{"v":"1.4.1","d":"2026-11-06","n":["New trip: name, dates and country are asked together"]},{"v":"1.4.0","d":"2026-11-06","n":["Photo editor: the page edges are found automatically right after taking a photo, and corners and sides snap to strong edges while you drag","A round magnifier shows the spot above your finger while you drag a corner or side","New Mark total button in the editor: draw a box around the total and only that box is read for the amount","Warning before saving a receipt whose amount and date already exist in the trip","Trip status (Open, Submitted, Reimbursed), Mark as submitted after making the PDF, trip dates and country (preselects currency and reading language)","Split / exclusions: paid for colleague, personal or partial (amount or percent); the report and statistics count only the claimed amount","Backup can be protected with a standard ZIP password","New Statistics page: total per trip, per category and per month, with year and trip filters","PDF layout setting: 2 x 2 (default), 2 x 3, 1 x 2, 1 per page or Auto, plus Print on its own page for single receipts"]},{"v":"1.3.0","d":"2026-11-05","n":["Faster receipt reading: the language follows the currency (e.g. JPY reads Japanese, USD English)","For EUR and CHF the app remembers the last detected language and reuses it; if nothing is found it retries with all chosen languages"]},{"v":"1.2.1","d":"2026-11-05","n":["Phone bottom bar: app colors set to black (reinstall the app once to see it)"]},{"v":"1.2.0","d":"2026-11-05","n":["New home page: add a receipt to your last trip, open your trips or start a new one","Trips list is now its own page, newest first, with dates, receipt count and total","Photo editor simplified: drag a corner to fix perspective, drag a side to crop","Categories have icons; choose Other to type your own; edit categories and icons in Settings","Reads receipts offline (amount, currency, date, category guess) — suggestions only, you confirm","Language packs page: English, German, French and Italian built in, ~100 more downloadable","Backup: save everything as one ZIP and load it on another phone (replace or merge)","Export a ZIP with the summary PDF and every receipt as a separate JPEG","Pop-ups now say Insert instead of the web address","Bottom bar of the phone follows the chosen theme"]},{"v":"1.1.0","d":"2026-11-05","n":["Top bar with app name, version and a menu button for navigation","Settings reorganised: a short menu with a separate page for each group","New Appearance page: color themes and light / dark mode","Photo editor: perspective correction (drag the 4 corners)","Add PDF and image files as receipts (e.g. a train ticket from your email)","New receipts reuse the currency of the last receipt in the trip","Version number on the opening screen"]},{"v": "1.0.0", "d": "2026-11-05", "n": ["Renamed to Receipt Archive", "Version number and changelog in Settings", "Licensed under GPL-3.0", "Published on GitHub Pages so it can be installed on phones"]}, {"v": "0.3.0", "d": "2026-11-05", "n": ["Privacy information and license in Settings"]}, {"v": "0.2.0", "d": "2026-11-05", "n": ["Photo editor: crop, rotate and straighten after taking a picture", "Install button in Settings", "App icon and quick opening animation", "Layout fixes for phone screens"]}, {"v": "0.1.0", "d": "2026-11-05", "n": ["First version: receipts with photos, automatic exchange rates with manual override", "One-click PDF in the company format (report page plus numbered receipt scans)", "Settings for bank details, header fields and signature"]}];
+/* ---------- welcome card and spotlight tour ---------- */
+function showWelcome(){
+  const bg=document.createElement('div');bg.className='wel-bg';
+  bg.innerHTML=`<div class="wel"><div class="ab-icon">${iconSvg()}</div><h2>Welcome to Receipt Archive</h2>
+   <ul><li>${ic('camera')}<span>Photograph your business-trip receipts</span></li><li>${ic('lock')}<span>Everything stays on this phone, it also works offline</span></li><li>${ic('doc')}<span>Make the expense report PDF in one tap</span></li></ul>
+   <button class="btn primary block" id="wgo">Take the 1-minute tour</button><div style="height:10px"></div><button class="btn block" id="wsk">Skip, I will explore myself</button>
+   <div class="hint" style="margin-top:10px;text-align:center">You can replay the tour any time from the ☰ menu.</div></div>`;
+  document.body.append(bg);
+  bg.querySelector('#wgo').onclick=()=>{bg.remove();startTour()};
+  bg.querySelector('#wsk').onclick=()=>{bg.remove();DB.put('kv',1,'tourDone');whatsNew(true)};
+}
+async function startTour(){
+  if(document.querySelector('.tour'))return;
+  const demo=trips.find(t=>t.demo)||trip||trips[0]||null;
+  const steps=[
+    {view:'home',sel:'#hNew',title:'1. Start a trip',text:'Tap New trip, then type a name, the dates and the country. The country sets the currency and the reading language of its receipts.'},
+    {view:'home',sel:'#hQuick',title:'2. Add receipts',text:'Add receipt takes a photo (or picks a picture or PDF). Check the frame and the amount, then tap Save. The app reads the amount, date and currency for you.'},
+    {view:'home',sel:'#hTrips',title:'3. Your trips',text:'All trips are here. The two Demo trips are fake samples to look at; delete them whenever you like.'},
+  ];
+  if(demo)steps.push({view:'trip',trip:demo,sel:'#pdfBtn',title:'4. Make the report',text:'When the trip is over, Generate PDF builds the report page and the receipt pages. The first time, the app asks for your name and bank details. Then you can share the PDF or a ZIP.'});
+  steps.push({view:'home',sel:'#burger',title:(steps.length+1)+'. More',text:'The ☰ menu has statistics, settings, backup and this tutorial. Back up your archive from time to time (Settings > Backup).'});
+  const keepTrip=trip;
+  const bg=document.createElement('div');bg.className='tour';
+  bg.innerHTML='<div class="tour-hole"></div><div class="tour-tip"><b></b><p></p><div class="tour-nav"><button class="btn small" id="tsk">Skip</button><span class="sub" id="tct"></span><button class="btn small primary" id="tnx">Next</button></div></div>';
+  document.body.append(bg);
+  const hole=bg.querySelector('.tour-hole'),tip=bg.querySelector('.tour-tip');let i=0,tgt=null;
+  const place=()=>{if(!tgt||!tgt.isConnected)return;const r=tgt.getBoundingClientRect(),pad=6;
+    hole.style.cssText=`left:${r.left-pad}px;top:${r.top-pad}px;width:${r.width+2*pad}px;height:${r.height+2*pad}px`;
+    const th=tip.offsetHeight,below=r.bottom+pad+14+th<innerHeight-10;
+    const top=below?r.bottom+pad+14:Math.max(10,r.top-pad-14-th);
+    tip.style.top=top+'px';tip.dataset.pos=below?'below':'above';
+    const cx=r.left+r.width/2;tip.style.setProperty('--ax',Math.min(Math.max(cx-tip.offsetLeft,24),tip.offsetWidth-24)+'px')};
+  const show=async()=>{
+    const st=steps[i];
+    if(st.view==='trip'){if(!trip||trip.id!==st.trip.id)await setTrip(st.trip);if(view!=='trip')nav('trip')}
+    else if(view!=='home')nav('home');
+    await new Promise(r=>setTimeout(r,350));
+    tgt=document.querySelector(st.sel);
+    if(!tgt){next();return}
+    tgt.scrollIntoView({block:'center'});
+    tip.querySelector('b').textContent=st.title;tip.querySelector('p').textContent=st.text;
+    bg.querySelector('#tct').textContent=`${i+1} / ${steps.length}`;
+    bg.querySelector('#tnx').textContent=i===steps.length-1?'Done':'Next';
+    await new Promise(r=>setTimeout(r,250));place()};
+  const finish=async()=>{removeEventListener('resize',place);bg.remove();await DB.put('kv',1,'tourDone');
+    if(trip!==keepTrip)await setTrip(keepTrip||null);
+    nav('home');toast('Tour finished. Replay it from the ☰ menu.')};
+  const next=()=>{if(i>=steps.length-1){finish();return}i++;show()};
+  bg.querySelector('#tnx').onclick=next;bg.querySelector('#tsk').onclick=finish;
+  addEventListener('resize',place);show();
+}
+const APP_VERSION='1.8.0';
+const CHANGELOG=[{"v": "1.8.0", "d": "2026-11-06", "n": ["Short welcome card and a spotlight tour on a brand-new install (replay any time: ☰ menu > Show tutorial); the first screen is no longer the bank details", "Your name and bank details are asked when you generate the PDF (only if missing), then the PDF continues", "Country field: type to search (accents ignored)", "PDF layout: new Auto-small (fewest pages, smaller cells) and Custom (columns × rows, 1 to 30); captions shrink in small cells", "Categories: icons in the category picker, press-and-hold drag to reorder, logical default order (transport, meals, hotel, other) applied once, Reset to default order button"]}, {"v": "1.7.0", "d": "2026-11-06", "n": ["Close button (X) on every pop-up; forms with unsaved changes ask before discarding", "The receipt form keeps Save and Delete always visible at the bottom; rarely used options are under More options", "Report: page 1 now looks like the company template; with more than 20 receipts, page 1 has no signature and says the table continues, later pages carry a short header and the signature and total are on the last page", "You can edit the file name before the PDF or ZIP is created (suggested: YearMonth_TripName)", "When online, the app tells you if a new version is available (popup at each start, a refresh button and the new version number in the top bar)", "Settings > Appearance: switch all icons to emoji and back"]}, {"v": "1.6.0", "d": "2026-11-06", "n": ["Icons instead of emojis everywhere in the app; categories can be given any of 44 icons (your existing categories keep the closest matching icon)", "Two sample trips (202610 Zürich and 202611 Espoo) with fake receipts marked SAMPLE come with a fresh install; delete them any time in My trips"]}, {"v": "1.5.0", "d": "2026-11-06", "n": ["Home page has four big buttons: Add receipt, Last trip, New trip, My trips", "App icon with a black outline (reinstall the app to see it on the home screen)"]}, {"v": "1.4.2", "d": "2026-11-06", "n": ["A one-time “What’s new” window appears after the app has been updated"]}, {"v": "1.4.1", "d": "2026-11-06", "n": ["New trip: name, dates and country are asked together"]}, {"v": "1.4.0", "d": "2026-11-06", "n": ["Photo editor: the page edges are found automatically right after taking a photo, and corners and sides snap to strong edges while you drag", "A round magnifier shows the spot above your finger while you drag a corner or side", "New Mark total button in the editor: draw a box around the total and only that box is read for the amount", "Warning before saving a receipt whose amount and date already exist in the trip", "Trip status (Open, Submitted, Reimbursed), Mark as submitted after making the PDF, trip dates and country (preselects currency and reading language)", "Split / exclusions: paid for colleague, personal or partial (amount or percent); the report and statistics count only the claimed amount", "Backup can be protected with a standard ZIP password", "New Statistics page: total per trip, per category and per month, with year and trip filters", "PDF layout setting: 2 x 2 (default), 2 x 3, 1 x 2, 1 per page or Auto, plus Print on its own page for single receipts"]}, {"v": "1.3.0", "d": "2026-11-05", "n": ["Faster receipt reading: the language follows the currency (e.g. JPY reads Japanese, USD English)", "For EUR and CHF the app remembers the last detected language and reuses it; if nothing is found it retries with all chosen languages"]}, {"v": "1.2.1", "d": "2026-11-05", "n": ["Phone bottom bar: app colors set to black (reinstall the app once to see it)"]}, {"v": "1.2.0", "d": "2026-11-05", "n": ["New home page: add a receipt to your last trip, open your trips or start a new one", "Trips list is now its own page, newest first, with dates, receipt count and total", "Photo editor simplified: drag a corner to fix perspective, drag a side to crop", "Categories have icons; choose Other to type your own; edit categories and icons in Settings", "Reads receipts offline (amount, currency, date, category guess) — suggestions only, you confirm", "Language packs page: English, German, French and Italian built in, ~100 more downloadable", "Backup: save everything as one ZIP and load it on another phone (replace or merge)", "Export a ZIP with the summary PDF and every receipt as a separate JPEG", "Pop-ups now say Insert instead of the web address", "Bottom bar of the phone follows the chosen theme"]}, {"v": "1.1.0", "d": "2026-11-05", "n": ["Top bar with app name, version and a menu button for navigation", "Settings reorganised: a short menu with a separate page for each group", "New Appearance page: color themes and light / dark mode", "Photo editor: perspective correction (drag the 4 corners)", "Add PDF and image files as receipts (e.g. a train ticket from your email)", "New receipts reuse the currency of the last receipt in the trip", "Version number on the opening screen"]}, {"v": "1.0.0", "d": "2026-11-05", "n": ["Renamed to Receipt Archive", "Version number and changelog in Settings", "Licensed under GPL-3.0", "Published on GitHub Pages so it can be installed on phones"]}, {"v": "0.3.0", "d": "2026-11-05", "n": ["Privacy information and license in Settings"]}, {"v": "0.2.0", "d": "2026-11-05", "n": ["Photo editor: crop, rotate and straighten after taking a picture", "Install button in Settings", "App icon and quick opening animation", "Layout fixes for phone screens"]}, {"v": "0.1.0", "d": "2026-11-05", "n": ["First version: receipts with photos, automatic exchange rates with manual override", "One-click PDF in the company format (report page plus numbered receipt scans)", "Settings for bank details, header fields and signature"]}];
 const LICENSE_TEXT="Receipt Archive\nCopyright (C) 2026 the Receipt Archive authors\n\nThis program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.\n\nThis program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.\n\nYou should have received a copy of the GNU General Public License along with this program (see the LICENSE file in the repository). If not, see https://www.gnu.org/licenses/gpl-3.0.html\n\nThird-party software included:\njsPDF (https://github.com/parallax/jsPDF), MIT License, Copyright (c) 2010-2021 James Hall; (c) 2015-2021 yWorks GmbH.\nPDF.js (https://github.com/mozilla/pdf.js), Apache License 2.0, Copyright Mozilla Foundation and contributors.\nTesseract.js (https://github.com/naptha/tesseract.js), Apache License 2.0, Copyright (c) 2018 tesseract.js contributors; Tesseract OCR engine and trained language data (Google / tessdata), Apache License 2.0.\nfflate (https://github.com/101arrowz/fflate), MIT License, Copyright (c) 2023 Arjun Barrett.";
 /* ---------- install ---------- */
 let deferredPrompt=null;
@@ -2400,9 +2546,9 @@ setTimeout(()=>{const sp=$('#splash');if(sp){sp.classList.add('out');setTimeout(
   const first=!S.firstName&&!S.iban&&!trips.length;
   await seedDemo();
   history.replaceState({v:'home',s:null},'');
-  if(first&&!(await DB.get('kv','seen'))){view='settings';sub='bank';history.replaceState({v:'settings',s:'bank'},'');await DB.put('kv',1,'seen')}
+  const welcome=first&&!(await DB.get('kv','seen'));if(welcome)await DB.put('kv',1,'seen');
   await render();
-  whatsNew(first);
+  if(welcome)setTimeout(showWelcome,900);else whatsNew(first);
   preloadOcr();
   setTimeout(()=>checkUpdate(true),1500);
 })();
