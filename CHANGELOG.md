@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.0 - 2026-11-06
+- Home page has four big buttons: Add receipt, Last trip, New trip, My trips
+- App icon with a black outline (reinstall the app to see it on the home screen)
+
 ## 1.4.2 - 2026-11-06
 - A one-time "What's new" window appears after the app has been updated
 
