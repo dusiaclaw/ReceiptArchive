@@ -80,6 +80,7 @@ canvas#sig{width:100%;height:130px;border:1px dashed var(--muted);border-radius:
 .editor .tools .btn{background:#1d2926;color:#fff;border-color:#2a3a37;min-width:44px;padding:0 12px}
 .editor .tools .btn.primary{background:#14b8a6;color:#04211d;border:0}
 .editor input[type=range]{flex:1;min-width:0}
+.editor .tools[hidden]{display:none}.editor .seg button{color:#fff;min-height:40px}.editor .seg button.on{background:#14b8a6;color:#04211d}.editor .tools .btn.on{background:#14b8a6;color:#04211d}
 .photos img{cursor:pointer}
 
 .appbar{position:sticky;top:0;z-index:5;margin:0 -16px;padding:calc(8px + env(safe-area-inset-top)) 16px 8px;background:var(--surface);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
@@ -642,6 +643,7 @@ const icSvg=(n,c='')=>`<svg class="ic${c?' '+c:''}" viewBox="0 0 24 24" fill="no
 const EMOJI2ICON={'🚆':'train','🚄':'train','🚌':'bus','🚕':'car','🚗':'car','🚲':'bike','✈':'plane','🚢':'ship','🅿':'parking','⛽':'fuel','🍽':'food','☕':'coffee','🍺':'beer','🍕':'pizza','🥐':'bread','🛒':'cart','🏨':'bed','🛏':'bed','📱':'phone','💻':'laptop','🌐':'world','📞':'call','🎫':'ticket','🎟':'ticket','🏛':'museum','🧳':'luggage','💼':'briefcase','📦':'package','🧾':'receipt','💳':'card','🏷':'tag','🛠':'tools','💊':'pill','🎁':'gift','🧴':'bottle','📚':'books','🖨':'printer','📮':'mail','🧹':'broom','⚽':'sport','🎭':'theater','🏥':'health','🧰':'tools','🔧':'tool','🌍':'world','💡':'bulb','📎':'clip'};
 
 const ICON2EMOJI={train:'🚆',bus:'🚌',car:'🚗',bike:'🚲',plane:'✈️',ship:'🚢',parking:'🅿️',fuel:'⛽',food:'🍽️',coffee:'☕',beer:'🍺',pizza:'🍕',bread:'🥐',cart:'🛒',bed:'🛏️',building:'🏢',phone:'📱',laptop:'💻',wifi:'📶',call:'📞',world:'🌍',ticket:'🎫',museum:'🏛️',luggage:'🧳',briefcase:'💼',package:'📦',receipt:'🧾',card:'💳',tag:'🏷️',tool:'🔧',tools:'🛠️',pill:'💊',gift:'🎁',books:'📚',printer:'🖨️',mail:'📮',broom:'🧹',bottle:'🧴',sport:'⚽',theater:'🎭',health:'🏥',bulb:'💡',clip:'📎',pin:'📍',home:'🏠',chart:'📊',doc:'📄',settings:'⚙️',history:'🕘',camera:'📷',photo:'🖼️',folder:'📁',plus:'➕',back:'◀️',next:'▶️',menu:'☰',x:'✖️',rotl:'↺',rotr:'↻',magnet:'🧲',mark:'🔲',search:'🔍',sparkles:'✨',pencil:'✏️',check:'✔️',zip:'🗜️',ok:'✅',money:'💶',sign:'✍️',palette:'🎨',lang:'🔤',save:'💾',lock:'🔒',download:'⬇️',info:'ℹ️',bank:'🏦',refresh:'🔄'};
+ICONS.sun='<circle cx="12" cy="12" r="4"/><path d="M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7"/>';ICON2EMOJI.sun='☀️';
 let ICON_STYLE='icons';
 const emoSvg=(g,c='')=>`<svg class="ic emo${c?' '+c:''}" viewBox="0 0 24 24" aria-hidden="true"><text x="12" y="12.6" text-anchor="middle" dominant-baseline="central" font-size="19">${String(g).replace(/[<&]/g,'')}</text></svg>`;
 const ic=(n,c='')=>ICON_STYLE==='emoji'?emoSvg(ICON2EMOJI[n]||ICON2EMOJI.tag,c):icSvg(n,c);
@@ -678,7 +680,7 @@ const DEF_CATS=[['Train tickets','train'],['Flight','plane'],['Taxi','car'],['Pa
 const DEFAULTS={firstName:'',lastName:'',address:'',city:'',bank:'',bankAddress:'',bic:'',iban:'',account:'',costcenter:'',project:'',vat:'',voucherNo:'',
  home:'CHF',fee:0,currencies:['CHF','EUR','USD','GBP','SEK','JPY','AUD'],
  categories:DEF_CATS,payments:['CARD','CASH'],signature:'',stamp:true,theme:'teal',mode:'system',
- ocrAuto:true,ocrLangs:['eng','deu','fra','ita'],packSrc:'fast',packUrl:'',pdfLayout:'2x2',pdfCols:2,pdfRows:2,autoCrop:true,snap:true,iconStyle:'icons'};
+ ocrAuto:true,ocrLangs:['eng','deu','fra','ita'],packSrc:'fast',packUrl:'',pdfLayout:'2x2',pdfCols:2,pdfRows:2,autoCrop:true,autoEnhance:true,snap:true,iconStyle:'icons'};
 let S={...DEFAULTS},trips=[],trip=null,exps=[],view='home',urls=[];
 const catIcon=n=>{const c=S.categories.find(c=>c.name.toLowerCase()===String(n).toLowerCase());return c?fixIcon(c.icon):'tag'};
 const migrateCats=cs=>(cs||[]).map(c=>typeof c==='string'?{name:c,icon:(DEF_CATS.find(d=>d.name.toLowerCase()===c.toLowerCase())||{icon:'tag'}).icon}:(c&&{...c,icon:fixIcon(c.icon)})).filter(c=>c&&c.name);
@@ -868,11 +870,42 @@ function tripDetails(t,isNew){
     const nm=q('#tn').value.trim(),f=q('#tf').value,to=q('#tt').value;
     if(!nm){toast('Enter a name');return}
     if(f&&to&&f>to){toast('“From” is after “To”');return}
+    const oldC=t.country||'';
     t.name=nm;t.from=f||'';t.to=to||'';t.country=q('#tc').value||'';if(!isNew)t.status=q('#ts').value;
-    if(isNew){t.created=Date.now();t.status='open';const id=await DB.put('trips',t);trips=await DB.all('trips');await setTrip(trips.find(x=>x.id===id));s.close();res(true);return}
-    await DB.put('trips',t);s.close();render();toast('Saved');res(true);
+    if(isNew){t.created=Date.now();t.status='open';const id=await DB.put('trips',t);trips=await DB.all('trips');await setTrip(trips.find(x=>x.id===id));s.close();res(true);askLangPack(t.country);return}
+    await DB.put('trips',t);s.close();render();toast('Saved');res(true);if(t.country!==oldC)askLangPack(t.country);
   };
  });
+}
+/* ---------- offer the reading-language pack for a trip's country ---------- */
+async function askLangPack(cn){
+  try{
+    const ct=countryOf(cn);if(!ct||!ct.lang)return;const code=ct.lang;
+    await loadPackMeta();if(packState(code)!=='none'||!navigator.onLine)return;
+    const skip=(await DB.get('kv','packSkip'))||{};if(skip[code])return;
+    const base=packBase();if(!base)return;
+    const L=LANGS.find(l=>l.c===code),nm=L?L.n:code;
+    let size='';
+    try{const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),3000);
+      const r=await fetch(`${base.startsWith('http')?base:abs(base)}/${code}.traineddata`,{method:'HEAD',signal:ac.signal});clearTimeout(tm);
+      const n=r.ok?+r.headers.get('content-length'):0;if(n)size=(n/1048576).toFixed(1)+' MB'}catch(e){}
+    const s=openSheet(`<h3>Read ${esc(nm)} receipts?</h3>
+      <div class="sub" style="margin-bottom:14px">Receipts from ${esc(ct.n)} are usually printed in ${esc(nm)}. Download the ${esc(nm)} reading pack${size?` (${size})`:''} so amounts and dates can be read on this phone, also offline.</div>
+      <button class="btn primary block" id="lpd">Download</button><div style="height:10px"></div>
+      <button class="btn block" id="lpn">Not now</button><div style="height:10px"></div>
+      <button class="btn block" id="lpx">Don’t ask again for ${esc(nm)}</button>`);
+    const b=s.querySelector('#lpd');
+    s.querySelector('#lpn').onclick=()=>s.close();
+    s.querySelector('#lpx').onclick=async()=>{skip[code]=1;await DB.put('kv',skip,'packSkip');s.close();toast('Won’t ask again — Settings › Reading languages')};
+    b.onclick=async()=>{
+      if(!navigator.onLine){toast('You are offline');return}
+      b.disabled=true;b.textContent='Downloading 0%';
+      try{const buf=await fetchPack(code,p=>{b.textContent='Downloading '+Math.round(p*100)+'%'});
+        await DB.put('kv',{data:buf.buffer,size:buf.length},'pack_'+code);
+        packMeta[code]={size:buf.length,src:packBase(),date:Date.now()};await DB.put('kv',packMeta,'packmeta');
+        const set=new Set(S.ocrLangs||[]);set.add(code);S.ocrLangs=[...set];saveSettings();s.close();toast(nm+' downloaded')}
+      catch(e){console.error(e);b.disabled=false;b.textContent='Download';tell('Download failed: '+e.message+'\nYou can try again later in Settings › Reading languages.')}};
+  }catch(e){console.error(e)}
 }
 /* ---------- statistics page ---------- */
 let stF={year:'all',trip:'all'},allExps=[];
@@ -1209,13 +1242,49 @@ function enhanceGray(c){
     d[i*4]=d[i*4+1]=d[i*4+2]=v;d[i*4+3]=255}
   g.putImageData(id,0,0);
 }
+/* ---------- scan-style enhancement: even lighting, white paper, optional black & white ---------- */
+function paperBg(src,w,h){
+  const N=64,sw=Math.max(4,Math.round(w>=h?N:N*w/h)),sh=Math.max(4,Math.round(h>w?N:N*h/w));
+  const t=document.createElement('canvas');t.width=sw;t.height=sh;const tg=t.getContext('2d',{willReadFrequently:true});
+  tg.imageSmoothingQuality='high';tg.drawImage(src,0,0,sw,sh);
+  const id=tg.getImageData(0,0,sw,sh),d=id.data;
+  const pass=mx=>{const o=new Uint8ClampedArray(d);
+    for(let y=0;y<sh;y++)for(let x=0;x<sw;x++)for(let c=0;c<3;c++){let v=mx?0:0,n=0;
+      for(let dy=-1;dy<=1;dy++){const yy=y+dy;if(yy<0||yy>=sh)continue;for(let dx=-1;dx<=1;dx++){const xx=x+dx;if(xx<0||xx>=sw)continue;const u=d[(yy*sw+xx)*4+c];if(mx){if(u>v)v=u}else{v+=u;n++}}}
+      o[(y*sw+x)*4+c]=mx?v:v/n}
+    d.set(o)};
+  pass(1);pass(1);pass(0);pass(0);tg.putImageData(id,0,0);
+  const b=document.createElement('canvas');b.width=w;b.height=h;const bg=b.getContext('2d',{willReadFrequently:true});
+  bg.imageSmoothingQuality='high';bg.drawImage(t,0,0,w,h);return bg.getImageData(0,0,w,h).data;
+}
+function makeEnhancer(img,maxSide){
+  const IW=img.naturalWidth||img.width,IH=img.naturalHeight||img.height,sc=Math.min(1,maxSide/Math.max(IW,IH));
+  const w=Math.max(1,Math.round(IW*sc)),h=Math.max(1,Math.round(IH*sc)),n=w*h;
+  const c=document.createElement('canvas');c.width=w;c.height=h;const g=c.getContext('2d',{willReadFrequently:true});
+  g.imageSmoothingQuality='high';g.drawImage(img,0,0,w,h);
+  const orig=g.getImageData(0,0,w,h).data;let norm=null;
+  function getNorm(){if(norm)return norm;
+    const bg=paperBg(c,w,h);norm=new Uint8ClampedArray(n*4);const hist=new Uint32Array(256);
+    for(let i=0;i<n*4;i+=4){for(let k=0;k<3;k++)norm[i+k]=orig[i+k]*250/Math.max(24,bg[i+k]);
+      hist[(.299*norm[i]+.587*norm[i+1]+.114*norm[i+2])|0]++}
+    let lo=0,acc=0;for(let i=0;i<256;i++){acc+=hist[i];if(acc>=n*.004){lo=i;break}}lo=Math.min(lo,140);
+    const s2=255/Math.max(60,248-lo);for(let i=0;i<n*4;i+=4)for(let k=0;k<3;k++)norm[i+k]=(norm[i+k]-lo)*s2;
+    return norm}
+  return function apply(e){
+    const id=g.createImageData(w,h),o=id.data,br=+e.br||0,ct=+e.ct||0;
+    if(e.mode==='bw'){const src=getNorm(),t0=172-br*1.4,span=Math.max(6,Math.min(90,40*(1-ct/60)));
+      for(let i=0;i<n*4;i+=4){const L=.299*src[i]+.587*src[i+1]+.114*src[i+2],v=(L-t0)*255/span+128;o[i]=o[i+1]=o[i+2]=v;o[i+3]=255}}
+    else{const src=e.mode==='auto'?getNorm():orig,cf=ct>=0?1+ct/50*1.2:1+ct/80,off=br*1.6;
+      for(let i=0;i<n*4;i+=4){o[i]=(src[i]-128)*cf+128+off;o[i+1]=(src[i+1]-128)*cf+128+off;o[i+2]=(src[i+2]-128)*cf+128+off;o[i+3]=255}}
+    g.putImageData(id,0,0);return c};
+}
 /* ---------- photo editor (crop, straighten, perspective, edge snapping, magnifier, total box) ---------- */
 function editPhoto(blob,opts={}){
   return new Promise(async resolve=>{
     const u=URL.createObjectURL(blob);let img0;
     try{img0=await loadImg(u)}catch(e){URL.revokeObjectURL(u);resolve(blob);return}
     const ov=document.createElement('div');ov.className='editor';
-    ov.innerHTML=`<div class="stage"><canvas></canvas><div class="mag"><canvas></canvas></div></div><div class="bar"><div class="hdl" id="hd"></div><div class="tools" id="rA"></div><div class="tools" id="rB"></div><div class="tools" id="rC"></div></div>`;
+    ov.innerHTML=`<div class="stage"><canvas></canvas><div class="mag"><canvas></canvas></div></div><div class="bar"><div class="hdl" id="hd"></div><div class="tools" id="rE"></div><div class="tools" id="rF" hidden></div><div class="tools" id="rA"></div><div class="tools" id="rB"></div><div class="tools" id="rC"></div></div>`;
     document.body.append(ov);
     const stage=ov.querySelector('.stage'),cv=ov.querySelector('.stage>canvas'),g=cv.getContext('2d'),dpr=Math.max(1,devicePixelRatio||1);
     const mag=ov.querySelector('.mag'),mc=mag.querySelector('canvas'),mg=mc.getContext('2d'),MR=56,MZ=3;
@@ -1227,13 +1296,15 @@ function editPhoto(blob,opts={}){
     const W=()=>rot%2?IH:IW,H=()=>rot%2?IW:IH;
     const cl=(v,a,b)=>Math.max(a,Math.min(b,v));
     const resetQ=()=>{q=[[0,0],[W(),0],[W(),H()],[0,H()]];box=null};
-    function paint(g,s,tx,ty){g.save();g.beginPath();g.rect(tx,ty,W()*s,H()*s);g.clip();g.fillStyle='#fff';g.fillRect(tx,ty,W()*s,H()*s);
-      g.translate(tx+W()*s/2,ty+H()*s/2);g.rotate((rot*90+ang)*Math.PI/180);g.scale(s,s);g.drawImage(img0,-IW/2,-IH/2);g.restore()}
+    let view=img0,enh={mode:(opts.auto&&S.autoEnhance!==false)?'auto':'none',br:0,ct:0},prev=null;
+    const enhOn=()=>enh.mode!=='none'||enh.br||enh.ct;
+    function paint(g,s,tx,ty,src){src=src||view;g.save();g.beginPath();g.rect(tx,ty,W()*s,H()*s);g.clip();g.fillStyle='#fff';g.fillRect(tx,ty,W()*s,H()*s);
+      g.translate(tx+W()*s/2,ty+H()*s/2);g.rotate((rot*90+ang)*Math.PI/180);g.scale(s,s);g.drawImage(src,-IW/2,-IH/2,IW,IH);g.restore()}
     const P=()=>q.map(p=>[ox+p[0]*k,oy+p[1]*k]);
     const isRect=()=>Math.abs(q[0][0]-q[3][0])<.5&&Math.abs(q[1][0]-q[2][0])<.5&&Math.abs(q[0][1]-q[1][1])<.5&&Math.abs(q[3][1]-q[2][1])<.5;
     /* edge map of the current view (used for snapping and for the automatic page frame) */
     function analyze(){try{const s0=Math.min(1,720/Math.max(W(),H())),c=document.createElement('canvas');c.width=Math.max(8,Math.round(W()*s0));c.height=Math.max(8,Math.round(H()*s0));
-      paint(c.getContext('2d'),s0,0,0);inf=edgeInfo(c);inf.k=s0*inf.s}catch(e){console.error(e);inf=null}}
+      paint(c.getContext('2d'),s0,0,0,img0);inf=edgeInfo(c);inf.k=s0*inf.s}catch(e){console.error(e);inf=null}}
     function autoFrame(){if(!inf)return false;const r=findPage(inf);if(!r)return false;q=r.map(p=>[cl(p[0]/inf.k,0,W()),cl(p[1]/inf.k,0,H())]);return true}
     const snapOn=()=>!!inf&&S.snap!==false;
     function snapPt(x,y,R){
@@ -1321,6 +1392,17 @@ function editPhoto(blob,opts={}){
     A.innerHTML=`<span style="font-size:13px;opacity:.85;width:118px">Straighten <b id="av">0.0°</b></span><input type="range" id="ang" min="-15" max="15" step="0.1" value="0">`;
     B.innerHTML=`<button class="btn small" id="el" aria-label="Rotate left">${ic('rotl')}</button><button class="btn small" id="er" aria-label="Rotate right">${ic('rotr')}</button><button class="btn small" id="eauto" style="flex:1">Auto</button><button class="btn small" id="ers" style="flex:1">Reset</button><button class="btn small" id="esn" aria-label="Snap to edges">${ic('magnet')}</button>`;
     C.innerHTML=`<button class="btn small" id="emk" style="flex:1.3">${ic('mark')}Mark total</button><button class="btn small" id="ec" style="flex:1">Cancel</button><button class="btn primary small" id="ed" style="flex:1.2">Done</button>`;
+    const E=ov.querySelector('#rE'),F=ov.querySelector('#rF');
+    E.innerHTML=`<div class="seg" style="flex:1;border-color:#2a3a37"><button type="button" data-em="none">Original</button><button type="button" data-em="auto">Enhance</button><button type="button" data-em="bw">B&amp;W</button></div><button class="btn small" id="eadj" aria-label="Brightness and contrast">${ic('sun')}</button>`;
+    F.innerHTML=`<span style="font-size:13px;opacity:.85">Light</span><input type="range" id="ebr" min="-50" max="50" step="1" value="0"><span style="font-size:13px;opacity:.85">Contrast</span><input type="range" id="ect" min="-50" max="50" step="1" value="0">`;
+    const ebr=F.querySelector('#ebr'),ect=F.querySelector('#ect'),eadj=E.querySelector('#eadj');
+    let enT=0;
+    function applyEnh(){cancelAnimationFrame(enT);enT=requestAnimationFrame(()=>{
+      try{if(!enhOn()){view=img0}else{if(!prev)prev=makeEnhancer(img0,1600);view=prev(enh)}}catch(err){console.error(err);view=img0}
+      E.querySelectorAll('[data-em]').forEach(b=>b.classList.toggle('on',b.dataset.em===enh.mode));draw()})}
+    E.querySelectorAll('[data-em]').forEach(b=>b.onclick=()=>{enh.mode=b.dataset.em;if(enh.mode==='none'){enh.br=enh.ct=0;ebr.value=ect.value=0}applyEnh()});
+    eadj.onclick=()=>{F.hidden=!F.hidden;eadj.classList.toggle('on',!F.hidden);layout()};
+    ebr.oninput=()=>{enh.br=+ebr.value;applyEnh()};ect.oninput=()=>{enh.ct=+ect.value;applyEnh()};
     const emk=C.querySelector('#emk'),esn=B.querySelector('#esn');
     function syncUi(){emk.classList.toggle('on',mark);emk.innerHTML=ic('mark')+(mark?'Drawing box…':(box?'Total set':'Mark total'));esn.classList.toggle('on',S.snap!==false);
       hd.innerHTML=mark?'Drag a <b>box</b> around the total amount. Only this box is read for the amount.':HINT}
@@ -1333,9 +1415,9 @@ function editPhoto(blob,opts={}){
     esn.onclick=()=>{S.snap=S.snap===false;saveSettings();syncUi();toast(S.snap===false?'Snapping off':'Snapping on')};
     emk.onclick=()=>{mark=!mark;syncUi();draw()};
     C.querySelector('#ec').onclick=()=>done(null);
-    async function totalCrop(){
+    async function totalCrop(hi){
       if(!box)return null;
-      const w=W(),h=H(),full=document.createElement('canvas');full.width=w;full.height=h;paint(full.getContext('2d'),1,0,0);
+      const w=W(),h=H(),full=document.createElement('canvas');full.width=w;full.height=h;paint(full.getContext('2d'),1,0,0,hi);
       let x0=Math.min(box.x0,box.x1),y0=Math.min(box.y0,box.y1),bw=Math.abs(box.x1-box.x0),bh=Math.abs(box.y1-box.y0);
       if(bw<4||bh<4)return null;
       const mrg=Math.round(Math.max(bw,bh)*.04)+2;x0=Math.max(0,Math.floor(x0-mrg));y0=Math.max(0,Math.floor(y0-mrg));
@@ -1350,24 +1432,25 @@ function editPhoto(blob,opts={}){
     C.querySelector('#ed').onclick=async()=>{
       try{
         const w=W(),h=H();let out;
+        const hi=enhOn()?makeEnhancer(img0,2400)(enh):img0;
         if(isRect()){
           const xs=q.map(a=>a[0]),ys=q.map(a=>a[1]),x0=Math.min(...xs),y0=Math.min(...ys),cw2=Math.max(...xs)-x0,ch2=Math.max(...ys)-y0;
           const s=Math.min(1,1800/Math.max(cw2,ch2));out=document.createElement('canvas');out.width=Math.max(1,Math.round(cw2*s));out.height=Math.max(1,Math.round(ch2*s));
-          paint(out.getContext('2d'),s,-x0*s,-y0*s);
+          paint(out.getContext('2d'),s,-x0*s,-y0*s,hi);
         }else{
-          const src=document.createElement('canvas');src.width=w;src.height=h;paint(src.getContext('2d'),1,0,0);
+          const src=document.createElement('canvas');src.width=w;src.height=h;paint(src.getContext('2d'),1,0,0,hi);
           out=warpImage(src,w,h,q);const m=Math.max(out.width,out.height);
           if(m>1800){const s=1800/m,o2=document.createElement('canvas');o2.width=Math.round(out.width*s);o2.height=Math.round(out.height*s);o2.getContext('2d').drawImage(out,0,0,o2.width,o2.height);out=o2}
         }
         const res=await new Promise(r=>out.toBlob(r,'image/jpeg',.8));
-        const tc=await totalCrop();if(tc)res.totalImg=tc;
+        const tc=await totalCrop(hi);if(tc)res.totalImg=tc;
         done(res);
       }catch(err){console.error(err);toast('Could not process the photo')}
     };
     addEventListener('resize',layout);resetQ();analyze();
     if(opts.auto&&S.autoCrop!==false)autoFrame();
-    layout();syncUi();
-    window.__editor={get q(){return q},get inf(){return inf},get box(){return box}};
+    layout();syncUi();applyEnh();
+    window.__editor={get q(){return q},get inf(){return inf},get box(){return box},get enh(){return enh}};
   });
 }
 /* ---------- expense form ---------- */
@@ -1814,6 +1897,8 @@ function pageBody(id){
     <div class="sub">The phone’s bottom bar follows the theme when the app is installed. After updating from an older version, remove the app and install it again once.</div>`;
   if(id==='photos')return `<div class="card"><label class="sub" style="display:flex;gap:10px;align-items:center"><input type="checkbox" id="optAuto" ${S.autoCrop!==false?'checked':''} style="width:22px;height:22px"> Frame the page automatically after taking a photo</label>
     <div class="sub" style="margin:8px 0 14px">The editor opens with the page edges already found. You can always drag the frame freely.</div>
+    <label class="sub" style="display:flex;gap:10px;align-items:center"><input type="checkbox" id="optEnh" ${S.autoEnhance!==false?'checked':''} style="width:22px;height:22px"> Enhance new photos automatically</label>
+    <div class="sub" style="margin:8px 0 14px">Evens out shadows and makes the paper white, like a scan. The receipt is read from the enhanced picture. Tap <b>Original</b> in the editor to undo it for one photo.</div>
     <label class="sub" style="display:flex;gap:10px;align-items:center"><input type="checkbox" id="optSnap" ${S.snap!==false?'checked':''} style="width:22px;height:22px"> Snap corners and sides to strong edges while dragging</label></div>
     <div class="sub">While you drag a corner or side, a round magnifier shows the spot above your finger.</div>`;
   if(id==='pdf')return `<div class="card"><div class="sub" style="margin-bottom:10px">Receipt pages after the report page. Every receipt keeps its number and caption.</div>`+
@@ -1986,7 +2071,7 @@ function bindSettings(){
   if(sub==='about'){$('#logBtn').onclick=openChangelog;$('#licBtn').onclick=openLicense}
   if(sub==='signature')initSig();
   if(sub==='lists')bindCats();
-  if(sub==='photos'){$('#optAuto').onchange=e=>{S.autoCrop=e.target.checked;saveSettings()};$('#optSnap').onchange=e=>{S.snap=e.target.checked;saveSettings()}}
+  if(sub==='photos'){$('#optAuto').onchange=e=>{S.autoCrop=e.target.checked;saveSettings()};$('#optSnap').onchange=e=>{S.snap=e.target.checked;saveSettings()};$('#optEnh').onchange=e=>{S.autoEnhance=e.target.checked;saveSettings()}}
   if(sub==='pdf'){
     app.querySelectorAll('[name=lay]').forEach(r=>r.onchange=()=>{S.pdfLayout=r.value;saveSettings();$('#custBox').style.display=r.value==='custom'?'':'none'});
     const info=()=>{const[c,r]=customGrid();const w=190/c,h=PG_H/r;$('#custInfo').textContent=`Each cell is about ${w.toFixed(0)} × ${h.toFixed(0)} mm.`+(Math.min(w,h)<40?' Very small cells make receipts hard to read when printed.':'')};
@@ -2451,8 +2536,8 @@ async function startTour(){
   bg.querySelector('#tnx').onclick=next;bg.querySelector('#tsk').onclick=finish;
   addEventListener('resize',place);show();
 }
-const APP_VERSION='1.8.2';
-const CHANGELOG=[{"v": "1.8.2", "d": "2026-11-06", "n": ["Fixed: with a downloaded language pack (for example Japanese) receipt reading stayed on \"Reading receipt…\" forever; it now reads, and a stuck start ends with a message after 45 seconds", "Yen receipts: amounts after ¥ or before 円 are found, currency JPY is set, and dates like 2024/11/12 are recognised"]}, {"v": "1.8.1", "d": "2026-11-06", "n": ["Receipt form: the whole date is visible again (narrower padding in the date and category fields)"]}, {"v": "1.8.0", "d": "2026-11-06", "n": ["Short welcome card and a spotlight tour on a brand-new install (replay any time: ☰ menu > Show tutorial); the first screen is no longer the bank details", "Your name and bank details are asked when you generate the PDF (only if missing), then the PDF continues", "Country field: type to search (accents ignored)", "PDF layout: new Auto-small (fewest pages, smaller cells) and Custom (columns × rows, 1 to 30); captions shrink in small cells", "Categories: icons in the category picker, press-and-hold drag to reorder, logical default order (transport, meals, hotel, other) applied once, Reset to default order button"]}, {"v": "1.7.0", "d": "2026-11-06", "n": ["Close button (X) on every pop-up; forms with unsaved changes ask before discarding", "The receipt form keeps Save and Delete always visible at the bottom; rarely used options are under More options", "Report: page 1 now looks like the company template; with more than 20 receipts, page 1 has no signature and says the table continues, later pages carry a short header and the signature and total are on the last page", "You can edit the file name before the PDF or ZIP is created (suggested: YearMonth_TripName)", "When online, the app tells you if a new version is available (popup at each start, a refresh button and the new version number in the top bar)", "Settings > Appearance: switch all icons to emoji and back"]}, {"v": "1.6.0", "d": "2026-11-06", "n": ["Icons instead of emojis everywhere in the app; categories can be given any of 44 icons (your existing categories keep the closest matching icon)", "Two sample trips (202610 Zürich and 202611 Espoo) with fake receipts marked SAMPLE come with a fresh install; delete them any time in My trips"]}, {"v": "1.5.0", "d": "2026-11-06", "n": ["Home page has four big buttons: Add receipt, Last trip, New trip, My trips", "App icon with a black outline (reinstall the app to see it on the home screen)"]}, {"v": "1.4.2", "d": "2026-11-06", "n": ["A one-time “What’s new” window appears after the app has been updated"]}, {"v": "1.4.1", "d": "2026-11-06", "n": ["New trip: name, dates and country are asked together"]}, {"v": "1.4.0", "d": "2026-11-06", "n": ["Photo editor: the page edges are found automatically right after taking a photo, and corners and sides snap to strong edges while you drag", "A round magnifier shows the spot above your finger while you drag a corner or side", "New Mark total button in the editor: draw a box around the total and only that box is read for the amount", "Warning before saving a receipt whose amount and date already exist in the trip", "Trip status (Open, Submitted, Reimbursed), Mark as submitted after making the PDF, trip dates and country (preselects currency and reading language)", "Split / exclusions: paid for colleague, personal or partial (amount or percent); the report and statistics count only the claimed amount", "Backup can be protected with a standard ZIP password", "New Statistics page: total per trip, per category and per month, with year and trip filters", "PDF layout setting: 2 x 2 (default), 2 x 3, 1 x 2, 1 per page or Auto, plus Print on its own page for single receipts"]}, {"v": "1.3.0", "d": "2026-11-05", "n": ["Faster receipt reading: the language follows the currency (e.g. JPY reads Japanese, USD English)", "For EUR and CHF the app remembers the last detected language and reuses it; if nothing is found it retries with all chosen languages"]}, {"v": "1.2.1", "d": "2026-11-05", "n": ["Phone bottom bar: app colors set to black (reinstall the app once to see it)"]}, {"v": "1.2.0", "d": "2026-11-05", "n": ["New home page: add a receipt to your last trip, open your trips or start a new one", "Trips list is now its own page, newest first, with dates, receipt count and total", "Photo editor simplified: drag a corner to fix perspective, drag a side to crop", "Categories have icons; choose Other to type your own; edit categories and icons in Settings", "Reads receipts offline (amount, currency, date, category guess) — suggestions only, you confirm", "Language packs page: English, German, French and Italian built in, ~100 more downloadable", "Backup: save everything as one ZIP and load it on another phone (replace or merge)", "Export a ZIP with the summary PDF and every receipt as a separate JPEG", "Pop-ups now say Insert instead of the web address", "Bottom bar of the phone follows the chosen theme"]}, {"v": "1.1.0", "d": "2026-11-05", "n": ["Top bar with app name, version and a menu button for navigation", "Settings reorganised: a short menu with a separate page for each group", "New Appearance page: color themes and light / dark mode", "Photo editor: perspective correction (drag the 4 corners)", "Add PDF and image files as receipts (e.g. a train ticket from your email)", "New receipts reuse the currency of the last receipt in the trip", "Version number on the opening screen"]}, {"v": "1.0.0", "d": "2026-11-05", "n": ["Renamed to Receipt Archive", "Version number and changelog in Settings", "Licensed under GPL-3.0", "Published on GitHub Pages so it can be installed on phones"]}, {"v": "0.3.0", "d": "2026-11-05", "n": ["Privacy information and license in Settings"]}, {"v": "0.2.0", "d": "2026-11-05", "n": ["Photo editor: crop, rotate and straighten after taking a picture", "Install button in Settings", "App icon and quick opening animation", "Layout fixes for phone screens"]}, {"v": "0.1.0", "d": "2026-11-05", "n": ["First version: receipts with photos, automatic exchange rates with manual override", "One-click PDF in the company format (report page plus numbered receipt scans)", "Settings for bank details, header fields and signature"]}];
+const APP_VERSION='1.9.0';
+const CHANGELOG=[{"v": "1.9.0", "d": "2026-11-06", "n": ["New: photos look like scans. Shadows are evened out and the paper turns white, and the receipt is read from the enhanced picture", "New: in the photo editor choose Original, Enhance or B&W (black and white), and use the sun button for light and contrast sliders. Nothing changes until you tap Done", "New: Settings › Photos lets you switch off automatic enhancement for new photos", "New: when a trip's country uses a language the phone can't read yet (for example Japan), the app offers to download that reading pack, with Download, Not now and Don't ask again"]}, {"v": "1.8.2", "d": "2026-11-06", "n": ["Fixed: with a downloaded language pack (for example Japanese) receipt reading stayed on \"Reading receipt…\" forever; it now reads, and a stuck start ends with a message after 45 seconds", "Yen receipts: amounts after ¥ or before 円 are found, currency JPY is set, and dates like 2024/11/12 are recognised"]}, {"v": "1.8.1", "d": "2026-11-06", "n": ["Receipt form: the whole date is visible again (narrower padding in the date and category fields)"]}, {"v": "1.8.0", "d": "2026-11-06", "n": ["Short welcome card and a spotlight tour on a brand-new install (replay any time: ☰ menu > Show tutorial); the first screen is no longer the bank details", "Your name and bank details are asked when you generate the PDF (only if missing), then the PDF continues", "Country field: type to search (accents ignored)", "PDF layout: new Auto-small (fewest pages, smaller cells) and Custom (columns × rows, 1 to 30); captions shrink in small cells", "Categories: icons in the category picker, press-and-hold drag to reorder, logical default order (transport, meals, hotel, other) applied once, Reset to default order button"]}, {"v": "1.7.0", "d": "2026-11-06", "n": ["Close button (X) on every pop-up; forms with unsaved changes ask before discarding", "The receipt form keeps Save and Delete always visible at the bottom; rarely used options are under More options", "Report: page 1 now looks like the company template; with more than 20 receipts, page 1 has no signature and says the table continues, later pages carry a short header and the signature and total are on the last page", "You can edit the file name before the PDF or ZIP is created (suggested: YearMonth_TripName)", "When online, the app tells you if a new version is available (popup at each start, a refresh button and the new version number in the top bar)", "Settings > Appearance: switch all icons to emoji and back"]}, {"v": "1.6.0", "d": "2026-11-06", "n": ["Icons instead of emojis everywhere in the app; categories can be given any of 44 icons (your existing categories keep the closest matching icon)", "Two sample trips (202610 Zürich and 202611 Espoo) with fake receipts marked SAMPLE come with a fresh install; delete them any time in My trips"]}, {"v": "1.5.0", "d": "2026-11-06", "n": ["Home page has four big buttons: Add receipt, Last trip, New trip, My trips", "App icon with a black outline (reinstall the app to see it on the home screen)"]}, {"v": "1.4.2", "d": "2026-11-06", "n": ["A one-time “What’s new” window appears after the app has been updated"]}, {"v": "1.4.1", "d": "2026-11-06", "n": ["New trip: name, dates and country are asked together"]}, {"v": "1.4.0", "d": "2026-11-06", "n": ["Photo editor: the page edges are found automatically right after taking a photo, and corners and sides snap to strong edges while you drag", "A round magnifier shows the spot above your finger while you drag a corner or side", "New Mark total button in the editor: draw a box around the total and only that box is read for the amount", "Warning before saving a receipt whose amount and date already exist in the trip", "Trip status (Open, Submitted, Reimbursed), Mark as submitted after making the PDF, trip dates and country (preselects currency and reading language)", "Split / exclusions: paid for colleague, personal or partial (amount or percent); the report and statistics count only the claimed amount", "Backup can be protected with a standard ZIP password", "New Statistics page: total per trip, per category and per month, with year and trip filters", "PDF layout setting: 2 x 2 (default), 2 x 3, 1 x 2, 1 per page or Auto, plus Print on its own page for single receipts"]}, {"v": "1.3.0", "d": "2026-11-05", "n": ["Faster receipt reading: the language follows the currency (e.g. JPY reads Japanese, USD English)", "For EUR and CHF the app remembers the last detected language and reuses it; if nothing is found it retries with all chosen languages"]}, {"v": "1.2.1", "d": "2026-11-05", "n": ["Phone bottom bar: app colors set to black (reinstall the app once to see it)"]}, {"v": "1.2.0", "d": "2026-11-05", "n": ["New home page: add a receipt to your last trip, open your trips or start a new one", "Trips list is now its own page, newest first, with dates, receipt count and total", "Photo editor simplified: drag a corner to fix perspective, drag a side to crop", "Categories have icons; choose Other to type your own; edit categories and icons in Settings", "Reads receipts offline (amount, currency, date, category guess) — suggestions only, you confirm", "Language packs page: English, German, French and Italian built in, ~100 more downloadable", "Backup: save everything as one ZIP and load it on another phone (replace or merge)", "Export a ZIP with the summary PDF and every receipt as a separate JPEG", "Pop-ups now say Insert instead of the web address", "Bottom bar of the phone follows the chosen theme"]}, {"v": "1.1.0", "d": "2026-11-05", "n": ["Top bar with app name, version and a menu button for navigation", "Settings reorganised: a short menu with a separate page for each group", "New Appearance page: color themes and light / dark mode", "Photo editor: perspective correction (drag the 4 corners)", "Add PDF and image files as receipts (e.g. a train ticket from your email)", "New receipts reuse the currency of the last receipt in the trip", "Version number on the opening screen"]}, {"v": "1.0.0", "d": "2026-11-05", "n": ["Renamed to Receipt Archive", "Version number and changelog in Settings", "Licensed under GPL-3.0", "Published on GitHub Pages so it can be installed on phones"]}, {"v": "0.3.0", "d": "2026-11-05", "n": ["Privacy information and license in Settings"]}, {"v": "0.2.0", "d": "2026-11-05", "n": ["Photo editor: crop, rotate and straighten after taking a picture", "Install button in Settings", "App icon and quick opening animation", "Layout fixes for phone screens"]}, {"v": "0.1.0", "d": "2026-11-05", "n": ["First version: receipts with photos, automatic exchange rates with manual override", "One-click PDF in the company format (report page plus numbered receipt scans)", "Settings for bank details, header fields and signature"]}];
 const LICENSE_TEXT="Receipt Archive\nCopyright (C) 2026 the Receipt Archive authors\n\nThis program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.\n\nThis program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.\n\nYou should have received a copy of the GNU General Public License along with this program (see the LICENSE file in the repository). If not, see https://www.gnu.org/licenses/gpl-3.0.html\n\nThird-party software included:\njsPDF (https://github.com/parallax/jsPDF), MIT License, Copyright (c) 2010-2021 James Hall; (c) 2015-2021 yWorks GmbH.\nPDF.js (https://github.com/mozilla/pdf.js), Apache License 2.0, Copyright Mozilla Foundation and contributors.\nTesseract.js (https://github.com/naptha/tesseract.js), Apache License 2.0, Copyright (c) 2018 tesseract.js contributors; Tesseract OCR engine and trained language data (Google / tessdata), Apache License 2.0.\nfflate (https://github.com/101arrowz/fflate), MIT License, Copyright (c) 2023 Arjun Barrett.";
 /* ---------- install ---------- */
 let deferredPrompt=null;

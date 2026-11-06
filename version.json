@@ -1,6 +1,16 @@
 {
- "version": "1.8.2",
+ "version": "1.9.0",
  "notes": [
+  {
+   "v": "1.9.0",
+   "d": "2026-11-06",
+   "n": [
+    "New: photos look like scans. Shadows are evened out and the paper turns white, and the receipt is read from the enhanced picture",
+    "New: in the photo editor choose Original, Enhance or B&W (black and white), and use the sun button for light and contrast sliders. Nothing changes until you tap Done",
+    "New: Settings › Photos lets you switch off automatic enhancement for new photos",
+    "New: when a trip's country uses a language the phone can't read yet (for example Japan), the app offers to download that reading pack, with Download, Not now and Don't ask again"
+   ]
+  },
   {
    "v": "1.8.2",
    "d": "2026-11-06",
@@ -37,14 +47,6 @@
     "You can edit the file name before the PDF or ZIP is created (suggested: YearMonth_TripName)",
     "When online, the app tells you if a new version is available (popup at each start, a refresh button and the new version number in the top bar)",
     "Settings > Appearance: switch all icons to emoji and back"
-   ]
-  },
-  {
-   "v": "1.6.0",
-   "d": "2026-11-06",
-   "n": [
-    "Icons instead of emojis everywhere in the app; categories can be given any of 44 icons (your existing categories keep the closest matching icon)",
-    "Two sample trips (202610 Zürich and 202611 Espoo) with fake receipts marked SAMPLE come with a fresh install; delete them any time in My trips"
    ]
   }
  ]
