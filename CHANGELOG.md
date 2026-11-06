@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.4.1 - 2026-11-06
+- New trip: name, dates and country are asked together
+
 ## 1.4.0 - 2026-11-06
 - Photo editor: page edges are found automatically right after taking a photo; corners and sides snap to strong edges while dragging (can be switched off)
 - Round magnifier above the finger while dragging a corner or side
