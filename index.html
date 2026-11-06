@@ -128,6 +128,23 @@ html{background:var(--bg)}
 .tag{display:inline-block;font-size:11px;font-weight:700;padding:1px 7px;border-radius:99px;background:var(--accent-soft);color:var(--accent);margin-left:6px}
 .bar2{height:6px;border-radius:3px;background:var(--line);overflow:hidden;margin-top:8px}.bar2 i{display:block;height:100%;width:0;background:var(--accent)}
 .editor .hdl{font-size:13px;opacity:.85;line-height:1.3}
+.editor .mag{position:absolute;width:112px;height:112px;border-radius:50%;border:3px solid #fff;box-shadow:0 4px 18px rgba(0,0,0,.6);pointer-events:none;display:none;overflow:hidden;z-index:3;background:#000}
+.editor .mag canvas{position:absolute;inset:0;width:100%;height:100%}
+.editor .tools .btn.on{background:#14b8a6;color:#04211d}
+.tag.st-submitted{background:rgba(245,166,35,.25);color:var(--ink)}
+.tag.st-reimbursed{background:rgba(46,160,67,.28);color:var(--ink)}
+.tag.kind{background:rgba(180,35,24,.14);color:var(--ink)}
+.layrow{display:flex;gap:12px;align-items:center;cursor:pointer;margin-bottom:8px}.layrow input{width:22px;height:22px;flex:none}
+.hb{display:grid;grid-template-columns:minmax(70px,34%) 1fr auto;gap:8px;align-items:center;margin:8px 0}
+.hb[data-trip]{cursor:pointer}
+.hb .hl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}
+.hb .ht2{height:14px;border-radius:7px;background:var(--line);overflow:hidden}.hb .ht2 i{display:block;height:100%;background:var(--accent);border-radius:7px}
+.hb .hv{font-size:13px;font-weight:600;min-width:56px;text-align:right}
+.vcols{display:flex;gap:4px;overflow-x:auto;padding-bottom:4px}
+.vc{flex:1;min-width:30px;display:flex;flex-direction:column;align-items:center;gap:3px}
+.vc .vb{height:120px;width:100%;display:flex;align-items:flex-end;border-bottom:1px solid var(--line)}
+.vc .vb i{display:block;width:100%;background:var(--accent);border-radius:4px 4px 0 0}
+.vc .vv{font-size:10px;color:var(--muted);height:12px}.vc .vl{font-size:10px;color:var(--muted);white-space:nowrap}
 </style>
 </head>
 <body>
@@ -616,7 +633,7 @@ const DEF_CATS=[['Train tickets','🚆'],['Restaurant/Food','🍽️'],['Hotel',
 const DEFAULTS={firstName:'',lastName:'',address:'',city:'',bank:'',bankAddress:'',bic:'',iban:'',account:'',costcenter:'',project:'',vat:'',voucherNo:'',
  home:'CHF',fee:0,currencies:['CHF','EUR','USD','GBP','SEK','JPY','AUD'],
  categories:DEF_CATS,payments:['CARD','CASH'],signature:'',stamp:true,theme:'teal',mode:'system',
- ocrAuto:true,ocrLangs:['eng','deu','fra','ita'],packSrc:'fast',packUrl:''};
+ ocrAuto:true,ocrLangs:['eng','deu','fra','ita'],packSrc:'fast',packUrl:'',pdfLayout:'2x2',autoCrop:true,snap:true};
 let S={...DEFAULTS},trips=[],trip=null,exps=[],view='home',urls=[];
 const catIcon=n=>{const c=S.categories.find(c=>c.name.toLowerCase()===String(n).toLowerCase());return c?c.icon:'🏷️'};
 const migrateCats=cs=>(cs||[]).map(c=>typeof c==='string'?{name:c,icon:(DEF_CATS.find(d=>d.name.toLowerCase()===c.toLowerCase())||{icon:'🏷️'}).icon}:c).filter(c=>c&&c.name);
@@ -636,10 +653,10 @@ async function loadExps(){
 const saveSettings=()=>DB.put('kv',S,'settings');
 async function setTrip(t){trip=t;await DB.put('kv',t?t.id:null,'currentTrip');await loadExps()}
 /* ---------- in-app dialogs (replace prompt / confirm / alert) ---------- */
-function dlg({text='',input=null,value='',ok='OK',cancel='Cancel',danger=false,placeholder='',extra=null}){
+function dlg({text='',input=null,value='',ok='OK',cancel='Cancel',danger=false,placeholder='',extra=null,type='text'}){
   return new Promise(res=>{
     const bg=document.createElement('div');bg.className='dlg-bg';
-    bg.innerHTML=`<div class="dlg" role="dialog"><h3>Insert</h3>${text?`<p>${esc(text)}</p>`:''}${input!==null?`<input id="di" value="${esc(value)}" placeholder="${esc(placeholder)}">`:''}<div class="acts">${cancel?`<button class="btn" id="dn">${esc(cancel)}</button>`:''}${extra?`<button class="btn" id="dx">${esc(extra)}</button>`:''}<button class="btn ${danger?'danger':'primary'}" id="dy">${esc(ok)}</button></div></div>`;
+    bg.innerHTML=`<div class="dlg" role="dialog"><h3>Insert</h3>${text?`<p>${esc(text)}</p>`:''}${input!==null?`<input id="di" type="${esc(type)}" value="${esc(value)}" placeholder="${esc(placeholder)}">`:''}<div class="acts">${cancel?`<button class="btn" id="dn">${esc(cancel)}</button>`:''}${extra?`<button class="btn" id="dx">${esc(extra)}</button>`:''}<button class="btn ${danger?'danger':'primary'}" id="dy">${esc(ok)}</button></div></div>`;
     document.body.append(bg);const i=bg.querySelector('#di');if(i){setTimeout(()=>{i.focus();i.select()},50)}
     const end=v=>{bg.remove();res(v)};
     bg.querySelector('#dy').onclick=()=>end(input!==null?i.value:true);
@@ -691,6 +708,151 @@ function applyTheme(){
 }
 try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(S.mode==='system')applyTheme()})}catch(e){}
 
+/* ---------- countries (currency + receipt language for a trip) ---------- */
+const COUNTRIES=`Australia|AUD|eng
+Austria|EUR|deu
+Belgium|EUR|
+Brazil|BRL|por
+Bulgaria|EUR|bul
+Canada|CAD|
+Chile|CLP|spa
+China|CNY|chi_sim
+Colombia|COP|spa
+Croatia|EUR|hrv
+Cyprus|EUR|ell
+Czechia|CZK|ces
+Denmark|DKK|dan
+Egypt|EGP|ara
+Estonia|EUR|est
+Finland|EUR|fin
+France|EUR|fra
+Georgia|GEL|kat
+Germany|EUR|deu
+Greece|EUR|ell
+Hong Kong|HKD|chi_tra
+Hungary|HUF|hun
+Iceland|ISK|isl
+India|INR|eng
+Indonesia|IDR|ind
+Ireland|EUR|eng
+Israel|ILS|heb
+Italy|EUR|ita
+Japan|JPY|jpn
+Kazakhstan|KZT|rus
+Latvia|EUR|lav
+Lithuania|EUR|lit
+Luxembourg|EUR|
+Malaysia|MYR|msa
+Malta|EUR|eng
+Mexico|MXN|spa
+Netherlands|EUR|nld
+New Zealand|NZD|eng
+Norway|NOK|nor
+Peru|PEN|spa
+Philippines|PHP|eng
+Poland|PLN|pol
+Portugal|EUR|por
+Qatar|QAR|ara
+Romania|RON|ron
+Saudi Arabia|SAR|ara
+Serbia|RSD|srp_latn
+Singapore|SGD|eng
+Slovakia|EUR|slk
+Slovenia|EUR|slv
+South Africa|ZAR|eng
+South Korea|KRW|kor
+Spain|EUR|spa
+Sweden|SEK|swe
+Switzerland|CHF|
+Taiwan|TWD|chi_tra
+Thailand|THB|tha
+Turkey|TRY|tur
+Ukraine|UAH|ukr
+United Arab Emirates|AED|ara
+United Kingdom|GBP|eng
+United States|USD|eng
+Vietnam|VND|vie`.split('\n').map(l=>{const[n,cur,lang]=l.split('|');return{n,cur,lang}});
+const countryOf=n=>n?COUNTRIES.find(c=>c.n===n)||null:null;
+const STATUS=[['open','Open'],['submitted','Submitted'],['reimbursed','Reimbursed']];
+const tripStatus=t=>(t&&t.status)||'open';
+const statusName=s=>(STATUS.find(x=>x[0]===s)||STATUS[0])[1];
+const statusTag=t=>`<span class="tag st-${tripStatus(t)}">${statusName(tripStatus(t))}</span>`;
+/* ---------- split / exclusions: what part of a receipt is claimed ---------- */
+const KIND_NAME={colleague:'Paid for colleague',personal:'Personal',partial:'Partial'};
+function exRatio(e){
+  if(!e||!e.kind)return 0;const a=Number(e.amount)||0,v=Number(e.exVal)||0;if(!(a>0)||!(v>0))return 0;
+  const r=e.exMode==='percent'?v/100:v/a;return Math.min(1,Math.max(0,r));
+}
+const claimHome=e=>{const r=exRatio(e);return r?r2(e.chf*(1-r)):e.chf};
+const claimOrig=e=>{const r=exRatio(e);return r?r2(e.amount*(1-r)):e.amount};
+const exclOrig=e=>r2(e.amount-claimOrig(e));
+const exclHome=e=>r2(e.chf-claimHome(e));
+/* ---------- trip details (dates, country, status) ---------- */
+function tripDetails(t){
+  const s=openSheet(`<h3>Trip details</h3>
+   <label class="f">Name<input id="tn" value="${esc(t.name)}"></label>
+   <div class="row"><label class="f">From<input type="date" id="tf" value="${esc(t.from||'')}"></label><label class="f">To<input type="date" id="tt" value="${esc(t.to||'')}"></label></div>
+   <label class="f">Country<select id="tc"><option value="">— not set —</option>${COUNTRIES.map(c=>`<option value="${esc(c.n)}" ${t.country===c.n?'selected':''}>${esc(c.n)} (${esc(c.cur)})</option>`).join('')}</select></label>
+   <div class="hint">New receipts of this trip start with the country’s currency, and receipts are read in its language.</div>
+   <label class="f">Status<select id="ts">${STATUS.map(([k,n])=>`<option value="${k}" ${tripStatus(t)===k?'selected':''}>${n}</option>`).join('')}</select></label>
+   <button class="btn primary block" id="tsv">Save</button><div style="height:10px"></div><button class="btn block" id="tcn">Cancel</button>`);
+  s.dataset.lock='1';
+  const q=x=>s.querySelector(x);
+  q('#tcn').onclick=()=>s.close();
+  q('#tsv').onclick=async()=>{
+    const nm=q('#tn').value.trim(),f=q('#tf').value,to=q('#tt').value;
+    if(!nm){toast('Enter a name');return}
+    if(f&&to&&f>to){toast('“From” is after “To”');return}
+    t.name=nm;t.from=f||'';t.to=to||'';t.country=q('#tc').value||'';t.status=q('#ts').value;
+    await DB.put('trips',t);s.close();render();toast('Saved');
+  };
+}
+/* ---------- statistics page ---------- */
+let stF={year:'all',trip:'all'},allExps=[];
+const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function statsData(){
+  if(stF.trip!=='all'&&!trips.some(t=>String(t.id)===String(stF.trip)))stF.trip='all';
+  const yrs=[...new Set(allExps.map(e=>e.date.slice(0,4)))].sort().reverse();
+  if(stF.year!=='all'&&!yrs.includes(stF.year))stF.year='all';
+  const list=allExps.filter(e=>(stF.year==='all'||e.date.slice(0,4)===stF.year)&&(stF.trip==='all'||String(e.tripId)===String(stF.trip)));
+  const byTrip=new Map(),byCat=new Map(),byMon=new Map();
+  for(const e of list){const v=claimHome(e);
+    byTrip.set(e.tripId,(byTrip.get(e.tripId)||0)+v);byCat.set(e.category,(byCat.get(e.category)||0)+v);
+    const m=e.date.slice(0,7);byMon.set(m,(byMon.get(m)||0)+v)}
+  const tripRows=[...byTrip].map(([id,v])=>({id,label:(trips.find(t=>t.id===id)||{name:'(deleted trip)'}).name,v:r2(v)})).sort((a,b)=>b.v-a.v);
+  const catRows=[...byCat].map(([c,v])=>({label:c,v:r2(v)})).sort((a,b)=>b.v-a.v);
+  let months=[];
+  if(stF.year!=='all'){for(let i=0;i<12;i++){const k=`${stF.year}-${String(i+1).padStart(2,'0')}`;months.push({k,label:MON[i],v:r2(byMon.get(k)||0)})}}
+  else if(byMon.size){const ks=[...byMon.keys()].sort();let [y,m]=ks[0].split('-').map(Number);const [ye,me]=ks[ks.length-1].split('-').map(Number);
+    while(y<ye||(y===ye&&m<=me)){const k=`${y}-${String(m).padStart(2,'0')}`;months.push({k,label:MON[m-1]+' '+String(y).slice(2),v:r2(byMon.get(k)||0)});m++;if(m>12){m=1;y++}}
+    if(months.length>36)months=months.slice(-36)}
+  return{yrs,list,tripRows,catRows,months,total:r2(list.reduce((a,e)=>a+claimHome(e),0))};
+}
+function hbars(rows,clickable){
+  const mx=Math.max(...rows.map(r=>r.v),0)||1;
+  return rows.map(r=>`<div class="hb" ${clickable?`data-trip="${r.id}" role="button" tabindex="0"`:''}><div class="hl">${r.html||esc(r.label)}</div><div class="ht2"><i style="width:${r.v>0?Math.max(2,r.v/mx*100):0}%"></i></div><div class="hv">${fmt2(r.v)}</div></div>`).join('');
+}
+function statsView(){
+  const d=statsData();
+  const short=v=>v>=10000?Math.round(v/1000)+'k':v>=1000?(v/1000).toFixed(1)+'k':v>0?String(Math.round(v)):'';
+  const mx=Math.max(...d.months.map(m=>m.v),0)||1;
+  const body=d.list.length?`
+   <div class="card"><div class="sub">Claimed in ${esc(S.home)} · ${d.list.length} receipt${d.list.length===1?'':'s'}</div><div class="total" id="stTotal">${fmt2(d.total)} ${esc(S.home)}</div></div>
+   <div class="card" id="chTrip"><b>Total per trip</b><div class="sub" style="margin-bottom:6px">Tap a bar to open the trip</div>${hbars(d.tripRows,true)}</div>
+   <div class="card" id="chCat"><b>Per category</b>${hbars(d.catRows.map(r=>({...r,html:esc(catIcon(r.label))+' '+esc(r.label)})),false)}</div>
+   <div class="card" id="chMon"><b>Per month</b><div class="vcols" style="margin-top:8px">${d.months.map(m=>`<div class="vc" title="${esc(m.k)}: ${fmt2(m.v)} ${esc(S.home)}" data-m="${m.k}" data-v="${m.v}"><div class="vv">${short(m.v)}</div><div class="vb"><i style="height:${m.v>0?Math.max(2,m.v/mx*100):0}%"></i></div><div class="vl">${esc(m.label)}</div></div>`).join('')}</div></div>
+   <div class="sub">Only the claimed amounts are counted, the same totals as in the reports. Parts marked personal or paid for a colleague are left out.</div>`
+   :'<div class="empty">No receipts for this selection.</div>';
+  return `<div class="pagehead"><button class="back" id="backBtn" aria-label="Back">‹</button><h1>Statistics</h1></div>
+   <div class="card"><div class="row"><label class="f" style="margin:0">Year<select id="stY"><option value="all">All time</option>${d.yrs.map(y=>`<option ${stF.year===y?'selected':''}>${y}</option>`).join('')}</select></label>
+   <label class="f" style="margin:0">Trip<select id="stT"><option value="all">All trips</option>${sortedTrips().map(t=>`<option value="${t.id}" ${String(stF.trip)===String(t.id)?'selected':''}>${esc(t.name)}</option>`).join('')}</select></label></div></div>${body}`;
+}
+function bindStats(){
+  $('#backBtn').onclick=goBack;
+  $('#stY').onchange=e=>{stF.year=e.target.value;render()};
+  $('#stT').onchange=e=>{stF.trip=e.target.value;render()};
+  document.querySelectorAll('.hb[data-trip]').forEach(b=>{const go=async()=>{const t=trips.find(t=>String(t.id)===b.dataset.trip);if(!t)return;await setTrip(t);nav('trip')};b.onclick=go;b.onkeydown=e=>{if(e.key==='Enter')go()}});
+}
 /* ---------- rendering ---------- */
 let sub=null;
 const ICON_SVG=(document.querySelector('.sp-icon')||{}).innerHTML||'';
@@ -699,7 +861,7 @@ const appbar=()=>`<div class="appbar"><div class="ab-icon">${iconSvg()}</div><di
 let tripStats={};
 async function loadStats(){
   const all=await DB.all('expenses');tripStats={};
-  for(const e of all){const s=tripStats[e.tripId]||(tripStats[e.tripId]={n:0,total:0,min:'',max:''});s.n++;s.total+=e.chf||0;
+  for(const e of all){const s=tripStats[e.tripId]||(tripStats[e.tripId]={n:0,total:0,min:'',max:''});s.n++;s.total+=claimHome(e)||0;
     if(!s.min||e.date<s.min)s.min=e.date;if(!s.max||e.date>s.max)s.max=e.date}
 }
 const tripKey=t=>{const s=tripStats[t.id];const d=s&&s.max?Date.parse(s.max):NaN;return isFinite(d)?d:(t.created||0)};
@@ -707,20 +869,22 @@ const sortedTrips=()=>[...trips].sort((a,b)=>tripKey(b)-tripKey(a));
 async function render(){
   urls.forEach(URL.revokeObjectURL);urls=[];
   if(view==='trips'||view==='home')await loadStats();
+  if(view==='stats')allExps=await DB.all('expenses');
   if(view==='trip'&&!trip)view='home';
-  const body=view==='home'?homeView():view==='trips'?tripsView():view==='trip'?tripView():settingsView();
+  const body=view==='home'?homeView():view==='trips'?tripsView():view==='trip'?tripView():view==='stats'?statsView():settingsView();
   $('#app').innerHTML=appbar()+'<div class="page">'+body+'</div>';
   $('#burger').onclick=openDrawer;
-  ({home:bindHome,trips:bindTrips,trip:bindTrip,settings:bindSettings})[view]();
+  ({home:bindHome,trips:bindTrips,trip:bindTrip,settings:bindSettings,stats:bindStats})[view]();
 }
 function nav(v,s=null){history.pushState({v,s},'');view=v;sub=s;render();scrollTo(0,0)}
 const goBack=()=>{if(history.state&&history.state.v&&history.length>1)history.back();else nav('home')};
 addEventListener('popstate',e=>{const st=e.state||{v:'home',s:null};view=st.v||'home';sub=st.s||null;render()});
-const totalChf=()=>exps.reduce((a,e)=>a+e.chf,0);
+const totalChf=()=>exps.reduce((a,e)=>a+claimHome(e),0);
+const totalAll=()=>exps.reduce((a,e)=>a+e.chf,0);
 
 function openDrawer(){
   const bg=document.createElement('div');bg.className='drawer-bg';
-  const items=[['home','🏠','Home'],['trip','🧾','Receipts of current trip'],['trips','🧳','My trips'],['pdf','📄','Generate PDF'],['settings','⚙️','Settings'],['log','🆕','Changelog'],['about','ℹ️','About & license']];
+  const items=[['home','🏠','Home'],['trip','🧾','Receipts of current trip'],['trips','🧳','My trips'],['stats','📊','Statistics'],['pdf','📄','Generate PDF'],['settings','⚙️','Settings'],['log','🆕','Changelog'],['about','ℹ️','About & license']];
   bg.innerHTML=`<div class="drawer"><div class="dr-head"><div class="ab-icon">${iconSvg()}</div><div><b>Receipt Archive</b><div class="sub">Version ${APP_VERSION}</div></div></div>`+
    items.map(i=>`<button class="dr-item" data-a="${i[0]}"><span>${i[1]}</span>${i[2]}</button>`).join('')+'</div>';
   document.body.append(bg);
@@ -730,6 +894,7 @@ function openDrawer(){
     if(a==='home')nav('home');
     else if(a==='trip'){if(trip)nav('trip');else toast('No trip yet — create one first')}
     else if(a==='trips')nav('trips');
+    else if(a==='stats')nav('stats');
     else if(a==='pdf'){if(!trip||!exps.length)toast('Add a receipt first');else{if(view!=='trip')nav('trip');exportPdf()}}
     else if(a==='settings')nav('settings');
     else if(a==='log')openChangelog();
@@ -763,10 +928,10 @@ async function newTrip(openIt){
 /* ---------- trips page ---------- */
 function tripsView(){
   const list=sortedTrips().map(t=>{const s=tripStats[t.id];
-    const rng=s?(s.min===s.max?dmy(s.min):dmy(s.min)+' – '+dmy(s.max)):'No receipts yet';
-    return `<div class="card trow ${trip&&t.id===trip.id?'cur':''}"><div class="tmain" data-id="${t.id}"><div class="mid"><b>${esc(t.name)}</b><span class="sub">${rng} · ${s?s.n:0} receipt${s&&s.n===1?'':'s'}</span></div>
+    const rng=(t.from||t.to)?((t.from?dmy(t.from):'…')+' – '+(t.to?dmy(t.to):'…')):(s?(s.min===s.max?dmy(s.min):dmy(s.min)+' – '+dmy(s.max)):'No receipts yet');
+    return `<div class="card trow ${trip&&t.id===trip.id?'cur':''}"><div class="tmain" data-id="${t.id}"><div class="mid"><b>${esc(t.name)}${statusTag(t)}</b><span class="sub">${rng} · ${s?s.n:0} receipt${s&&s.n===1?'':'s'}${t.country?' · '+esc(t.country):''}</span></div>
       <div class="amt"><b>${fmt2(s?s.total:0)} ${esc(S.home)}</b></div></div>
-      <div class="tacts"><button class="btn small" data-r="${t.id}">Rename</button><button class="btn small danger" data-d="${t.id}">Delete</button></div></div>`}).join('');
+      <div class="tacts"><button class="btn small" data-t="${t.id}">Details</button><button class="btn small" data-r="${t.id}">Rename</button><button class="btn small danger" data-d="${t.id}">Delete</button></div></div>`}).join('');
   return `<div class="pagehead"><button class="back" id="backBtn" aria-label="Back">‹</button><h1>My trips</h1></div>
   <button class="btn primary block" id="ntBtn" style="margin-bottom:14px">＋ New trip</button>${list||'<div class="empty">No trips yet.</div>'}`;
 }
@@ -774,6 +939,7 @@ function bindTrips(){
   $('#backBtn').onclick=goBack;
   $('#ntBtn').onclick=()=>newTrip(true);
   document.querySelectorAll('.tmain').forEach(n=>n.onclick=async()=>{await setTrip(trips.find(t=>t.id==n.dataset.id));nav('trip')});
+  document.querySelectorAll('[data-t]').forEach(n=>n.onclick=()=>tripDetails(trips.find(t=>t.id==n.dataset.t)));
   document.querySelectorAll('[data-r]').forEach(n=>n.onclick=async()=>{const t=trips.find(t=>t.id==n.dataset.r);const nm=await askText('Trip / customer name',t.name);if(nm&&nm.trim()){t.name=nm.trim();await DB.put('trips',t);render()}});
   document.querySelectorAll('[data-d]').forEach(n=>n.onclick=async()=>{const t=trips.find(t=>t.id==n.dataset.d);
     if(!await askYes(`Delete “${t.name}” and all its receipts?`,'Delete',true))return;
@@ -786,11 +952,13 @@ function bindTrips(){
 function tripView(){
   const list=exps.map((e,i)=>`<div class="card exp" data-id="${e.id}">
     <div class="thumb">${e.images&&e.images[0]?`<img src="${url(e.images[0])}" alt="">`:'—'}</div>
-    <div class="mid"><b><span class="num">${i+1}</span>${esc(catIcon(e.category))} ${esc(e.category)}</b><span class="sub">${dmy(e.date)}${e.note?' · '+esc(e.note):''}${e.images&&e.images.length>1?' · 📷'+e.images.length:''}</span></div>
-    <div class="amt"><b>${fmt2(e.chf)} ${esc(S.home)}</b>${e.cur!==S.home?`<div class="sub">${esc(String(e.amount))} ${esc(e.cur)}</div>`:''}</div></div>`).join('');
+    <div class="mid"><b><span class="num">${i+1}</span>${esc(catIcon(e.category))} ${esc(e.category)}</b><span class="sub">${dmy(e.date)}${e.note?' · '+esc(e.note):''}${e.images&&e.images.length>1?' · 📷'+e.images.length:''}${exRatio(e)?`<span class="tag kind">${esc(KIND_NAME[e.kind]||'Partial')}</span>`:''}</span></div>
+    <div class="amt"><b>${fmt2(claimHome(e))} ${esc(S.home)}</b>${exRatio(e)?`<div class="sub">of ${fmt2(e.chf)}</div>`:''}${e.cur!==S.home?`<div class="sub">${esc(String(e.amount))} ${esc(e.cur)}</div>`:''}</div></div>`).join('');
   return `<div class="pagehead"><button class="back" id="backBtn" aria-label="Back">‹</button><h1 style="font-size:20px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(trip.name)}</h1></div>
-  <div class="card"><div class="sub">${exps.length} receipt${exps.length===1?'':'s'}</div><div class="total">${fmt2(totalChf())} ${esc(S.home)}</div>
-   <div style="height:12px"></div><button class="btn primary block" id="pdfBtn" ${exps.length?'':'disabled'}>Generate PDF for accounting</button></div>
+  <div class="card"><div class="sub">${exps.length} receipt${exps.length===1?'':'s'} ${statusTag(trip)}${trip.from||trip.to?` · ${trip.from?dmy(trip.from):'…'} – ${trip.to?dmy(trip.to):'…'}`:''}${trip.country?' · '+esc(trip.country):''}</div><div class="total">${fmt2(totalChf())} ${esc(S.home)}</div>
+   ${r2(totalAll()-totalChf())?`<div class="sub" id="exNote">${fmt2(totalAll())} ${esc(S.home)} in total, ${fmt2(r2(totalAll()-totalChf()))} not claimed</div>`:''}
+   <div style="height:12px"></div><button class="btn primary block" id="pdfBtn" ${exps.length?'':'disabled'}>Generate PDF for accounting</button>
+   <div style="height:8px"></div><button class="btn block small" id="tdBtn" style="width:100%">Trip details (dates, country, status)</button></div>
   ${list||'<div class="empty">No receipts yet.<br>Tap “Add receipt” to photograph the first one.</div>'}
   <button class="fab" id="fab">＋ Add receipt</button>`;
 }
@@ -798,6 +966,7 @@ function bindTrip(){
   $('#backBtn').onclick=goBack;
   $('#fab').onclick=openAddChoice;
   $('#pdfBtn').onclick=exportPdf;
+  $('#tdBtn').onclick=()=>tripDetails(trip);
   document.querySelectorAll('.exp').forEach(c=>c.onclick=()=>openExpense(exps.find(e=>e.id==c.dataset.id)));
 }
 
@@ -857,7 +1026,7 @@ async function onFiles(inp){
   for(const f of files){
     try{
       if(isPdf(f))blobs.push(...await pdfPages(f));
-      else{const b=await compress(f,2400,.9);const ed=await editPhoto(b);if(ed)blobs.push(ed)}
+      else{const b=await compress(f,2400,.9);const ed=await editPhoto(b,{auto:true});if(ed)blobs.push(ed)}
     }catch(e){console.error(e);toast('Could not read '+(f.name||'file'))}
   }
   if(!blobs.length)return;
@@ -893,22 +1062,128 @@ function warpImage(src,sw,sh,q){
       od[o+3]=255}}
   og.putImageData(id,0,0);return out;
 }
-function editPhoto(blob){
+/* ---------- page-edge detection (works on a small copy of the photo) ---------- */
+function edgeInfo(srcCanvas){
+  const sw=srcCanvas.width,sh=srcCanvas.height,s=Math.min(1,360/Math.max(sw,sh));
+  const w=Math.max(8,Math.round(sw*s)),h=Math.max(8,Math.round(sh*s));
+  const c=document.createElement('canvas');c.width=w;c.height=h;const g=c.getContext('2d',{willReadFrequently:true});
+  g.fillStyle='#fff';g.fillRect(0,0,w,h);g.drawImage(srcCanvas,0,0,w,h);
+  const d=g.getImageData(0,0,w,h).data,n=w*h,gr=new Float32Array(n);
+  for(let i=0;i<n;i++)gr[i]=.299*d[i*4]+.587*d[i*4+1]+.114*d[i*4+2];
+  const bl=new Float32Array(n);
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){let a=0,m=0;
+    for(let dy=-1;dy<=1;dy++){const yy=y+dy;if(yy<0||yy>=h)continue;for(let dx=-1;dx<=1;dx++){const xx=x+dx;if(xx<0||xx>=w)continue;a+=gr[yy*w+xx];m++}}
+    bl[y*w+x]=a/m}
+  const mag=new Float32Array(n);
+  for(let y=1;y<h-1;y++)for(let x=1;x<w-1;x++){const i=y*w+x;
+    const gx=-bl[i-w-1]+bl[i-w+1]-2*bl[i-1]+2*bl[i+1]-bl[i+w-1]+bl[i+w+1];
+    const gy=-bl[i-w-1]-2*bl[i-w]-bl[i-w+1]+bl[i+w-1]+2*bl[i+w]+bl[i+w+1];
+    mag[i]=Math.hypot(gx,gy)}
+  const sorted=Float32Array.from(mag).sort();
+  return{w,h,s,gr:bl,mag,thr:Math.max(60,sorted[Math.floor(n*.93)])};
+}
+/* find the page: brightest/darkest big blob (Otsu), return 4 corners TL,TR,BR,BL in small-image pixels, or null */
+function findPage(inf){
+  const{w,h,gr}=inf,n=w*h;
+  const hist=new Float64Array(256);for(let i=0;i<n;i++)hist[Math.min(255,gr[i]|0)]++;
+  let sum=0;for(let i=0;i<256;i++)sum+=i*hist[i];
+  let sB=0,wB=0,best=-1,t=128;
+  for(let i=0;i<256;i++){wB+=hist[i];if(!wB)continue;const wF=n-wB;if(!wF)break;sB+=i*hist[i];
+    const mB=sB/wB,mF=(sum-sB)/wF,v=wB*wF*(mB-mF)*(mB-mF);if(v>best){best=v;t=i}}
+  const bx=Math.max(1,Math.round(w*.08)),by=Math.max(1,Math.round(h*.08));
+  let cb=0,cn=0,rb=0,rn=0;
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){const br=gr[y*w+x]>t;
+    if(x>w*.3&&x<w*.7&&y>h*.3&&y<h*.7){cn++;if(br)cb++}
+    if(x<bx||x>=w-bx||y<by||y>=h-by){rn++;if(br)rb++}}
+  const pageBright=cb/cn>=rb/rn;
+  const m=new Uint8Array(n);for(let i=0;i<n;i++)m[i]=(pageBright?gr[i]>t:gr[i]<=t)?1:0;
+  const lab=new Uint8Array(n),st=new Int32Array(n);let bestC=null;
+  for(let s0=0;s0<n;s0++){
+    if(!m[s0]||lab[s0])continue;
+    let sp=0;st[sp++]=s0;lab[s0]=1;let area=0,tl=null,br=null,tr=null,bl=null,mnS=1e9,mxS=-1e9,mxD=-1e9,mnD=1e9;
+    while(sp){const p=st[--sp],x=p%w,y=(p/w)|0;area++;const S1=x+y,D=x-y;
+      if(S1<mnS){mnS=S1;tl=[x,y]}if(S1>mxS){mxS=S1;br=[x,y]}if(D>mxD){mxD=D;tr=[x,y]}if(D<mnD){mnD=D;bl=[x,y]}
+      if(x>0&&m[p-1]&&!lab[p-1]){lab[p-1]=1;st[sp++]=p-1}
+      if(x<w-1&&m[p+1]&&!lab[p+1]){lab[p+1]=1;st[sp++]=p+1}
+      if(y>0&&m[p-w]&&!lab[p-w]){lab[p-w]=1;st[sp++]=p-w}
+      if(y<h-1&&m[p+w]&&!lab[p+w]){lab[p+w]=1;st[sp++]=p+w}}
+    if(!bestC||area>bestC.area)bestC={area,q:[tl,tr,br,bl]};
+  }
+  if(!bestC||bestC.area<n*.12)return null;
+  const q=bestC.q.map(p=>[p[0]+.5,p[1]+.5]);
+  let qa=0;for(let i=0;i<4;i++){const a=q[i],b=q[(i+1)%4];qa+=a[0]*b[1]-b[0]*a[1]}qa=Math.abs(qa)/2;
+  if(!(qa>0)||bestC.area/qa<.6||qa>n*.97)return null;
+  let sg=0;for(let i=0;i<4;i++){const a=q[i],b=q[(i+1)%4],c=q[(i+2)%4];const z=(b[0]-a[0])*(c[1]-b[1])-(b[1]-a[1])*(c[0]-b[0]);if(z===0)return null;const s1=z>0?1:-1;if(sg&&s1!==sg)return null;sg=s1}
+  /* grow the corners by about half a pixel outward */
+  const cx=q.reduce((a,p)=>a+p[0],0)/4,cy=q.reduce((a,p)=>a+p[1],0)/4;
+  return q.map(p=>{const dx=p[0]-cx,dy=p[1]-cy,l=Math.hypot(dx,dy)||1;return[Math.max(0,Math.min(w,p[0]+dx/l)),Math.max(0,Math.min(h,p[1]+dy/l))]});
+}
+/* contrast stretch + light sharpen for the "Mark total" crop */
+function enhanceGray(c){
+  const g=c.getContext('2d',{willReadFrequently:true}),w=c.width,h=c.height,id=g.getImageData(0,0,w,h),d=id.data,n=w*h;
+  const hist=new Uint32Array(256);
+  for(let i=0;i<n;i++){const v=(.299*d[i*4]+.587*d[i*4+1]+.114*d[i*4+2])|0;d[i*4]=v;hist[v]++}
+  let lo=0,hi=255,acc=0;
+  for(let i=0;i<256;i++){acc+=hist[i];if(acc>=n*.02){lo=i;break}}
+  acc=0;for(let i=255;i>=0;i--){acc+=hist[i];if(acc>=n*.02){hi=i;break}}
+  if(hi-lo<30){lo=Math.max(0,lo-15);hi=Math.min(255,hi+15)}
+  const sc=255/Math.max(1,hi-lo),v0=new Float32Array(n);
+  for(let i=0;i<n;i++)v0[i]=Math.max(0,Math.min(255,(d[i*4]-lo)*sc));
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){const i=y*w+x;let v=v0[i];
+    if(x>0&&y>0&&x<w-1&&y<h-1)v=Math.max(0,Math.min(255,5*v0[i]-v0[i-1]-v0[i+1]-v0[i-w]-v0[i+w]));
+    d[i*4]=d[i*4+1]=d[i*4+2]=v;d[i*4+3]=255}
+  g.putImageData(id,0,0);
+}
+/* ---------- photo editor (crop, straighten, perspective, edge snapping, magnifier, total box) ---------- */
+function editPhoto(blob,opts={}){
   return new Promise(async resolve=>{
     const u=URL.createObjectURL(blob);let img0;
     try{img0=await loadImg(u)}catch(e){URL.revokeObjectURL(u);resolve(blob);return}
     const ov=document.createElement('div');ov.className='editor';
-    ov.innerHTML=`<div class="stage"><canvas></canvas></div><div class="bar"><div class="hdl">Drag a <b>corner</b> to fix a skewed photo, drag a <b>side</b> to crop.</div><div class="tools" id="rA"></div><div class="tools" id="rB"></div><div class="tools" id="rC"></div></div>`;
+    ov.innerHTML=`<div class="stage"><canvas></canvas><div class="mag"><canvas></canvas></div></div><div class="bar"><div class="hdl" id="hd"></div><div class="tools" id="rA"></div><div class="tools" id="rB"></div><div class="tools" id="rC"></div></div>`;
     document.body.append(ov);
-    const stage=ov.querySelector('.stage'),cv=ov.querySelector('canvas'),g=cv.getContext('2d'),dpr=Math.max(1,devicePixelRatio||1);
+    const stage=ov.querySelector('.stage'),cv=ov.querySelector('.stage>canvas'),g=cv.getContext('2d'),dpr=Math.max(1,devicePixelRatio||1);
+    const mag=ov.querySelector('.mag'),mc=mag.querySelector('canvas'),mg=mc.getContext('2d'),MR=56,MZ=3;
+    mc.width=mc.height=MR*2*dpr;
+    const hd=ov.querySelector('#hd');
+    const HINT='Drag a <b>corner</b> to fix a skewed photo, drag a <b>side</b> to crop.';
     const IW=img0.naturalWidth,IH=img0.naturalHeight;
-    let rot=0,ang=0,q,k=1,ox=0,oy=0,cw=0,ch=0,drag=null;
+    let rot=0,ang=0,q,k=1,ox=0,oy=0,cw=0,ch=0,drag=null,inf=null,mark=false,box=null;
     const W=()=>rot%2?IH:IW,H=()=>rot%2?IW:IH;
-    const resetQ=()=>{q=[[0,0],[W(),0],[W(),H()],[0,H()]]};
+    const cl=(v,a,b)=>Math.max(a,Math.min(b,v));
+    const resetQ=()=>{q=[[0,0],[W(),0],[W(),H()],[0,H()]];box=null};
     function paint(g,s,tx,ty){g.save();g.beginPath();g.rect(tx,ty,W()*s,H()*s);g.clip();g.fillStyle='#fff';g.fillRect(tx,ty,W()*s,H()*s);
       g.translate(tx+W()*s/2,ty+H()*s/2);g.rotate((rot*90+ang)*Math.PI/180);g.scale(s,s);g.drawImage(img0,-IW/2,-IH/2);g.restore()}
     const P=()=>q.map(p=>[ox+p[0]*k,oy+p[1]*k]);
     const isRect=()=>Math.abs(q[0][0]-q[3][0])<.5&&Math.abs(q[1][0]-q[2][0])<.5&&Math.abs(q[0][1]-q[1][1])<.5&&Math.abs(q[3][1]-q[2][1])<.5;
+    /* edge map of the current view (used for snapping and for the automatic page frame) */
+    function analyze(){try{const s0=Math.min(1,720/Math.max(W(),H())),c=document.createElement('canvas');c.width=Math.max(8,Math.round(W()*s0));c.height=Math.max(8,Math.round(H()*s0));
+      paint(c.getContext('2d'),s0,0,0);inf=edgeInfo(c);inf.k=s0*inf.s}catch(e){console.error(e);inf=null}}
+    function autoFrame(){if(!inf)return false;const r=findPage(inf);if(!r)return false;q=r.map(p=>[cl(p[0]/inf.k,0,W()),cl(p[1]/inf.k,0,H())]);return true}
+    const snapOn=()=>!!inf&&S.snap!==false;
+    function snapPt(x,y,R){
+      if(!snapOn())return[x,y];
+      const cx=x*inf.k,cy=y*inf.k,r=Math.max(2,Math.round(R*inf.k));let b=null,bs=0;
+      for(let yy=Math.max(1,Math.round(cy)-r);yy<=Math.min(inf.h-2,Math.round(cy)+r);yy++)for(let xx=Math.max(1,Math.round(cx)-r);xx<=Math.min(inf.w-2,Math.round(cx)+r);xx++){
+        const mgv=inf.mag[yy*inf.w+xx];if(mgv<inf.thr)continue;const dd=Math.hypot(xx-cx,yy-cy);if(dd>r)continue;
+        const sc=mgv*(1-dd/(r+1));if(sc>bs){bs=sc;b=[xx,yy]}}
+      return b?[b[0]/inf.k,b[1]/inf.k]:[x,y];
+    }
+    function snapSide(i,R){
+      if(!snapOn())return;
+      const j=(i+1)%4,a=q[i],b=q[j],horiz=i%2===0,r=Math.max(2,Math.round(R*inf.k));
+      const len=Math.hypot(b[0]-a[0],b[1]-a[1])*inf.k,N=Math.max(6,Math.min(48,Math.round(len/4)));
+      let bd=0,bs=0;
+      for(let d=-r;d<=r;d++){let sm=0,cnt=0;
+        for(let t=0;t<=N;t++){const uu=t/N;let x=(a[0]+(b[0]-a[0])*uu)*inf.k,y=(a[1]+(b[1]-a[1])*uu)*inf.k;if(horiz)y+=d;else x+=d;
+          const xi=Math.round(x),yi=Math.round(y);if(xi<1||yi<1||xi>inf.w-2||yi>inf.h-2)continue;sm+=inf.mag[yi*inf.w+xi];cnt++}
+        if(cnt<N/2)continue;const mean=sm/cnt,sc=mean*(1-Math.abs(d)/(r+1));
+        if(mean>inf.thr*.55&&sc>bs){bs=sc;bd=d}}
+      if(!bd)return;
+      let dd=bd/inf.k;const ax=horiz?1:0,lim=horiz?H():W();
+      dd=cl(dd,-Math.min(a[ax],b[ax]),lim-Math.max(a[ax],b[ax]));
+      q[i][ax]+=dd;q[j][ax]+=dd;
+    }
     function draw(){
       g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,cw,ch);
       paint(g,k,ox,oy);const p=P();
@@ -921,13 +1196,28 @@ function editPhoto(blob){
       g.fillStyle='#fff';
       for(let i=0;i<4;i++){const a=p[i],b=p[(i+1)%4];g.beginPath();g.arc((a[0]+b[0])/2,(a[1]+b[1])/2,6,0,6.3);g.fill()}
       p.forEach(([x,y])=>{g.beginPath();g.arc(x,y,13,0,6.3);g.fillStyle='#fff';g.fill();g.lineWidth=3;g.strokeStyle='#14b8a6';g.stroke()});
+      if(box){const bx=ox+Math.min(box.x0,box.x1)*k,by=oy+Math.min(box.y0,box.y1)*k,bw=Math.abs(box.x1-box.x0)*k,bh=Math.abs(box.y1-box.y0)*k;
+        g.fillStyle='rgba(251,191,36,.2)';g.fillRect(bx,by,bw,bh);g.strokeStyle='#fbbf24';g.lineWidth=2.5;g.strokeRect(bx,by,bw,bh)}
+    }
+    /* magnifier bubble above the finger (below it when the handle is near the top) */
+    function showMag(fx,fy,px,py){
+      mag.style.display='block';
+      let my=py-92;if(my-MR<6)my=py+92;
+      const mx=cl(px,MR+4,Math.max(MR+4,cw-MR-4));my=cl(my,MR+4,Math.max(MR+4,ch-MR-4));
+      mag.style.left=(mx-MR)+'px';mag.style.top=(my-MR)+'px';mag.dataset.pos=my<py?'above':'below';
+      mg.setTransform(dpr,0,0,dpr,0,0);mg.clearRect(0,0,MR*2,MR*2);mg.save();mg.beginPath();mg.arc(MR,MR,MR,0,6.3);mg.clip();
+      mg.fillStyle='#000';mg.fillRect(0,0,MR*2,MR*2);
+      const sk=k*MZ,tx=MR-fx*sk,ty=MR-fy*sk;paint(mg,sk,tx,ty);
+      mg.strokeStyle='rgba(255,255,255,.9)';mg.lineWidth=1.5;mg.beginPath();q.forEach((p,i)=>{const X=tx+p[0]*sk,Y=ty+p[1]*sk;i?mg.lineTo(X,Y):mg.moveTo(X,Y)});mg.closePath();mg.stroke();
+      mg.strokeStyle='#14b8a6';mg.lineWidth=1.6;mg.beginPath();mg.moveTo(MR-14,MR);mg.lineTo(MR+14,MR);mg.moveTo(MR,MR-14);mg.lineTo(MR,MR+14);mg.stroke();
+      mg.restore();
     }
     function layout(){cw=stage.clientWidth;ch=stage.clientHeight;cv.width=cw*dpr;cv.height=ch*dpr;k=Math.min((cw-28)/W(),(ch-28)/H());ox=(cw-W()*k)/2;oy=(ch-H()*k)/2;draw()}
     const pos=e=>{const r=cv.getBoundingClientRect();return[e.clientX-r.left,e.clientY-r.top]};
-    const cl=(v,a,b)=>Math.max(a,Math.min(b,v));
     const inside=(px,py)=>{const p=P();let c=false;for(let i=0,j=3;i<4;j=i++){if((p[i][1]>py)!==(p[j][1]>py)&&px<(p[j][0]-p[i][0])*(py-p[i][1])/(p[j][1]-p[i][1])+p[i][0])c=!c}return c};
     const segD=(px,py,a,b)=>{const vx=b[0]-a[0],vy=b[1]-a[1],t=cl(((px-a[0])*vx+(py-a[1])*vy)/(vx*vx+vy*vy||1),0,1);return Math.hypot(px-a[0]-t*vx,py-a[1]-t*vy)};
     cv.onpointerdown=e=>{const[px,py]=pos(e),p=P();
+      if(mark){const x=cl((px-ox)/k,0,W()),y=cl((py-oy)/k,0,H());drag={t:'b'};box={x0:x,y0:y,x1:x,y1:y};cv.setPointerCapture(e.pointerId);draw();return}
       let bi=-1,bd=34;p.forEach((c,i)=>{const d=Math.hypot(c[0]-px,c[1]-py);if(d<bd){bd=d;bi=i}});
       if(bi>=0){drag={t:'c',i:bi}}
       else{let si=-1,sd=26;for(let i=0;i<4;i++){const d=segD(px,py,p[i],p[(i+1)%4]);if(d<sd){sd=d;si=i}}
@@ -936,24 +1226,52 @@ function editPhoto(blob){
         else return}
       cv.setPointerCapture(e.pointerId)};
     cv.onpointermove=e=>{if(!drag)return;const[px,py]=pos(e),w=W(),h=H();
-      if(drag.t==='c'){q[drag.i]=[cl((px-ox)/k,0,w),cl((py-oy)/k,0,h)]}
+      if(drag.t==='b'){box.x1=cl((px-ox)/k,0,w);box.y1=cl((py-oy)/k,0,h);draw();return}
+      const R=22/k;
+      if(drag.t==='c'){const pt=snapPt(cl((px-ox)/k,0,w),cl((py-oy)/k,0,h),R);q[drag.i]=[cl(pt[0],0,w),cl(pt[1],0,h)];showMag(q[drag.i][0],q[drag.i][1],px,py)}
       else{const dx=(px-drag.px)/k,dy=(py-drag.py)/k,q0=drag.q0;
         if(drag.t==='m'){const xs=q0.map(a=>a[0]),ys=q0.map(a=>a[1]);const mx=cl(dx,-Math.min(...xs),w-Math.max(...xs)),my=cl(dy,-Math.min(...ys),h-Math.max(...ys));q=q0.map(a=>[a[0]+mx,a[1]+my])}
         else{q=q0.map(a=>[...a]);const i=drag.i,j=(i+1)%4;
           if(i%2===0){const my=cl(dy,-Math.min(q0[i][1],q0[j][1]),h-Math.max(q0[i][1],q0[j][1]));q[i][1]+=my;q[j][1]+=my}
-          else{const mx=cl(dx,-Math.min(q0[i][0],q0[j][0]),w-Math.max(q0[i][0],q0[j][0]));q[i][0]+=mx;q[j][0]+=mx}}}
+          else{const mx=cl(dx,-Math.min(q0[i][0],q0[j][0]),w-Math.max(q0[i][0],q0[j][0]));q[i][0]+=mx;q[j][0]+=mx}
+          snapSide(i,R);
+          const a=q[i],b=q[j],vx=b[0]-a[0],vy=b[1]-a[1],sx=(px-ox)/k,sy=(py-oy)/k,t=cl(((sx-a[0])*vx+(sy-a[1])*vy)/(vx*vx+vy*vy||1),0,1);
+          showMag(a[0]+vx*t,a[1]+vy*t,px,py)}}
       draw()};
-    cv.onpointerup=cv.onpointercancel=()=>{drag=null};
+    cv.onpointerup=cv.onpointercancel=()=>{
+      if(drag&&drag.t==='b'&&box&&(Math.abs(box.x1-box.x0)*k<10||Math.abs(box.y1-box.y0)*k<10))box=null;
+      drag=null;mag.style.display='none';syncUi();draw()};
     const done=r=>{removeEventListener('resize',layout);ov.remove();URL.revokeObjectURL(u);resolve(r)};
     const A=ov.querySelector('#rA'),B=ov.querySelector('#rB'),C=ov.querySelector('#rC');
     A.innerHTML=`<span style="font-size:13px;opacity:.85;width:118px">Straighten <b id="av">0.0°</b></span><input type="range" id="ang" min="-15" max="15" step="0.1" value="0">`;
-    B.innerHTML=`<button class="btn small" id="el" aria-label="Rotate left">⟲</button><button class="btn small" id="er" aria-label="Rotate right">⟳</button><button class="btn small" id="ers" style="flex:1">Reset</button>`;
-    C.innerHTML=`<button class="btn small" id="ec" style="flex:1">Cancel</button><button class="btn primary small" id="ed" style="flex:1.4">Done</button>`;
-    const sl=A.querySelector('#ang');sl.oninput=()=>{ang=+sl.value;A.querySelector('#av').textContent=ang.toFixed(1)+'°';resetQ();draw()};
-    const turn=d=>{rot=(rot+d+4)%4;resetQ();layout()};
+    B.innerHTML=`<button class="btn small" id="el" aria-label="Rotate left">⟲</button><button class="btn small" id="er" aria-label="Rotate right">⟳</button><button class="btn small" id="eauto" style="flex:1">Auto</button><button class="btn small" id="ers" style="flex:1">Reset</button><button class="btn small" id="esn" aria-label="Snap to edges">🧲</button>`;
+    C.innerHTML=`<button class="btn small" id="emk" style="flex:1.3">🔢 Mark total</button><button class="btn small" id="ec" style="flex:1">Cancel</button><button class="btn primary small" id="ed" style="flex:1.2">Done</button>`;
+    const emk=C.querySelector('#emk'),esn=B.querySelector('#esn');
+    function syncUi(){emk.classList.toggle('on',mark);emk.textContent=mark?'🔢 Drawing box…':(box?'🔢 Total ✓':'🔢 Mark total');esn.classList.toggle('on',S.snap!==false);
+      hd.innerHTML=mark?'Drag a <b>box</b> around the total amount. Only this box is read for the amount.':HINT}
+    const sl=A.querySelector('#ang');
+    let anT=0;sl.oninput=()=>{ang=+sl.value;A.querySelector('#av').textContent=ang.toFixed(1)+'°';resetQ();draw();clearTimeout(anT);anT=setTimeout(()=>{analyze()},180)};
+    const turn=d=>{rot=(rot+d+4)%4;resetQ();analyze();autoFrame();layout();syncUi()};
     B.querySelector('#el').onclick=()=>turn(-1);B.querySelector('#er').onclick=()=>turn(1);
-    B.querySelector('#ers').onclick=()=>{rot=0;ang=0;sl.value=0;A.querySelector('#av').textContent='0.0°';resetQ();layout()};
+    B.querySelector('#eauto').onclick=()=>{box=null;if(autoFrame()){layout()}else toast('No page edges found');syncUi()};
+    B.querySelector('#ers').onclick=()=>{rot=0;ang=0;sl.value=0;A.querySelector('#av').textContent='0.0°';mark=false;resetQ();analyze();layout();syncUi()};
+    esn.onclick=()=>{S.snap=S.snap===false;saveSettings();syncUi();toast(S.snap===false?'Snapping off':'Snapping on')};
+    emk.onclick=()=>{mark=!mark;syncUi();draw()};
     C.querySelector('#ec').onclick=()=>done(null);
+    async function totalCrop(){
+      if(!box)return null;
+      const w=W(),h=H(),full=document.createElement('canvas');full.width=w;full.height=h;paint(full.getContext('2d'),1,0,0);
+      let x0=Math.min(box.x0,box.x1),y0=Math.min(box.y0,box.y1),bw=Math.abs(box.x1-box.x0),bh=Math.abs(box.y1-box.y0);
+      if(bw<4||bh<4)return null;
+      const mrg=Math.round(Math.max(bw,bh)*.04)+2;x0=Math.max(0,Math.floor(x0-mrg));y0=Math.max(0,Math.floor(y0-mrg));
+      bw=Math.min(w-x0,Math.ceil(bw+2*mrg));bh=Math.min(h-y0,Math.ceil(bh+2*mrg));
+      const up=Math.max(1,Math.min(4,170/bh,1600/bw)),pad=12;
+      const c=document.createElement('canvas');c.width=Math.round(bw*up)+2*pad;c.height=Math.round(bh*up)+2*pad;
+      const cg=c.getContext('2d',{willReadFrequently:true});cg.fillStyle='#fff';cg.fillRect(0,0,c.width,c.height);cg.imageSmoothingQuality='high';
+      cg.drawImage(full,x0,y0,bw,bh,pad,pad,Math.round(bw*up),Math.round(bh*up));
+      enhanceGray(c);
+      return await new Promise(r=>c.toBlob(r,'image/png'));
+    }
     C.querySelector('#ed').onclick=async()=>{
       try{
         const w=W(),h=H();let out;
@@ -966,18 +1284,24 @@ function editPhoto(blob){
           out=warpImage(src,w,h,q);const m=Math.max(out.width,out.height);
           if(m>1800){const s=1800/m,o2=document.createElement('canvas');o2.width=Math.round(out.width*s);o2.height=Math.round(out.height*s);o2.getContext('2d').drawImage(out,0,0,o2.width,o2.height);out=o2}
         }
-        done(await new Promise(r=>out.toBlob(r,'image/jpeg',.8)));
+        const res=await new Promise(r=>out.toBlob(r,'image/jpeg',.8));
+        const tc=await totalCrop();if(tc)res.totalImg=tc;
+        done(res);
       }catch(err){console.error(err);toast('Could not process the photo')}
     };
-    addEventListener('resize',layout);resetQ();layout();
+    addEventListener('resize',layout);resetQ();analyze();
+    if(opts.auto&&S.autoCrop!==false)autoFrame();
+    layout();syncUi();
+    window.__editor={get q(){return q},get inf(){return inf},get box(){return box}};
   });
 }
 /* ---------- expense form ---------- */
+function newDate(){let d=todayISO();if(trip&&trip.from&&trip.to){if(d>trip.to)d=trip.to;if(d<trip.from)d=trip.from}return d}
 async function openExpense(exp,newImages){
   const isNew=!exp;
-  const lastCur=()=>{if(!exps.length)return S.home;return exps.reduce((a,b)=>(b.created||0)>=(a.created||0)?b:a).cur||S.home};
+  const lastCur=()=>{const ct=trip&&countryOf(trip.country);if(ct)return ct.cur;if(!exps.length)return S.home;return exps.reduce((a,b)=>(b.created||0)>=(a.created||0)?b:a).cur||S.home};
   const f=exp?{...exp,images:[...(exp.images||[])],manual:true}:
-    {date:todayISO(),category:S.categories[0].name,note:'',cur:lastCur(),amount:'',rate:1,chf:0,payment:S.payments[0]||'CARD',images:newImages||[],manual:false};
+    {date:newDate(),category:S.categories[0].name,kind:'',exMode:'amount',exVal:'',ownPage:false,note:'',cur:lastCur(),amount:'',rate:1,chf:0,payment:S.payments[0]||'CARD',images:newImages||[],manual:false};
   if(!isNew&&exp.cur===S.home)f.manual=false;
   const opt=(arr,v)=>{arr=arr.includes(v)?arr:[v,...arr];return arr.map(x=>`<option ${x===v?'selected':''}>${esc(x)}</option>`).join('')};
   const known=S.categories.some(c=>c.name===f.category);
@@ -996,7 +1320,11 @@ async function openExpense(exp,newImages){
    <div class="row"><label class="f">Rate (1 <span class="c">${esc(f.cur)}</span> = ? ${esc(S.home)})<input id="fr" inputmode="decimal" value="${f.rate?rateStr(f.rate):''}"></label>
    <label class="f">Total ${esc(S.home)}<input id="ft" inputmode="decimal" value="${f.chf?f.chf.toFixed(2):''}"></label></div>
    <div class="hint" id="fi"></div>
+   <label class="f">Claim<select id="fk"><option value="">Claim the full amount</option><option value="colleague">Paid for a colleague (not claimed)</option><option value="personal">Personal (not claimed)</option><option value="partial">Partial (claim only a part)</option></select></label>
+   <div id="exw" style="display:none"><div class="seg" id="exm" style="margin-bottom:10px"><button type="button" data-m="amount">Amount</button><button type="button" data-m="percent">Percent</button></div>
+   <label class="f"><span id="exl">Not claimed</span><input id="fx" inputmode="decimal" placeholder="0.00"></label><div class="hint" id="exh"></div></div>
    <label class="f">Payment method<select id="fp">${opt(S.payments,f.payment)}</select></label>
+   <label class="sub" style="display:flex;gap:10px;align-items:center;margin:0 2px 14px"><input type="checkbox" id="fop" style="width:22px;height:22px"> Print on its own page in the PDF</label>
    <button class="btn primary block" id="sv">Save</button>
    ${isNew?'':'<div style="height:10px"></div><button class="btn danger block" id="dl">Delete receipt</button>'}
    <div style="height:10px"></div><button class="btn block" id="cn">Cancel</button>`);
@@ -1005,7 +1333,7 @@ async function openExpense(exp,newImages){
   const touched=new Set();
   const drawPhotos=()=>{const ph=q('#ph');ph.innerHTML=f.images.length?'':'<div class="sub">No photo attached</div>';
     f.images.forEach((b,i)=>{const d=document.createElement('div');d.className='p';d.innerHTML=`<img src="${url(b)}" alt=""><button class="x" aria-label="Remove">✕</button>`;
-      d.querySelector('.x').onclick=()=>{f.images.splice(i,1);drawPhotos()};d.querySelector('img').onclick=async()=>{const ed=await editPhoto(f.images[i]);if(ed){f.images[i]=ed;drawPhotos();if(i===0)autoRead()}};ph.append(d)})};
+      d.querySelector('.x').onclick=()=>{f.images.splice(i,1);drawPhotos()};d.querySelector('img').onclick=async()=>{const ed=await editPhoto(f.images[i]);if(ed){f.images[i]=ed;drawPhotos();if(i===0||ed.totalImg)autoRead()}};ph.append(d)})};
   drawPhotos();
   const added=bl=>{f.images.push(...bl);drawPhotos();autoRead()};
   q('#pc').onclick=()=>{pickHandler=added;$('#camIn').click()};
@@ -1014,7 +1342,21 @@ async function openExpense(exp,newImages){
   s.close=(c=>()=>{pickHandler=null;ocrProg=()=>{};c()})(s.close);
 
   let tok=0;
-  const upd=()=>{const a=num(f.amount),r=num(f.rate);f.chf=(isFinite(a)&&isFinite(r))?r2(a*r):0;q('#ft').value=f.chf?f.chf.toFixed(2):''};
+  const updEx=()=>{
+    q('#exw').style.display=f.kind?'':'none';
+    q('#exm').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.m===f.exMode));
+    q('#exl').textContent=f.exMode==='percent'?'Not claimed (%)':`Not claimed (${f.cur})`;
+    const a=num(f.amount),ratio=exRatio({kind:f.kind,exMode:f.exMode,exVal:num(q('#fx').value)||0,amount:a}),rt=num(f.rate);
+    q('#exh').textContent=f.kind&&a>0?`You claim ${fmt2(r2(a*(1-ratio)))} ${f.cur}`+(f.cur!==S.home&&rt>0?` ≈ ${fmt2(r2(a*(1-ratio)*rt))} ${S.home}`:''):'';
+  };
+  const upd=()=>{const a=num(f.amount),r=num(f.rate);f.chf=(isFinite(a)&&isFinite(r))?r2(a*r):0;q('#ft').value=f.chf?f.chf.toFixed(2):'';updEx()};
+  q('#fk').onchange=()=>{f.kind=q('#fk').value;
+    if((f.kind==='colleague'||f.kind==='personal')&&!(num(q('#fx').value)>0)){f.exMode='percent';q('#fx').value='100'}
+    updEx()};
+  q('#fx').oninput=updEx;
+  q('#exm').querySelectorAll('button').forEach(b=>b.onclick=()=>{const m=b.dataset.m;if(m===f.exMode)return;const a=num(f.amount),v=num(q('#fx').value);
+    if(a>0&&v>0)q('#fx').value=String(m==='percent'?r2(v/a*100):r2(v/100*a));f.exMode=m;updEx()});
+  q('#fk').value=f.kind||'';q('#fx').value=f.kind&&f.exVal!==''&&f.exVal!=null?String(f.exVal):'';q('#fop').checked=!!f.ownPage;
   const refresh=async()=>{
     q('.c').textContent=f.cur;
     if(f.cur===S.home){f.rate=1;f.manual=false;q('#fr').value='1';q('#fr').readOnly=true;q('#fi').textContent='';upd();return}
@@ -1054,9 +1396,18 @@ async function openExpense(exp,newImages){
           ocrProg=p=>{if(my===reading)note.textContent=`🔍 Reading receipt (${langs.map(langName).join(', ')})… ${Math.round(p*100)}%`};
           tx+='\n'+await ocrImage(b,langs);
         }return tx};
+      let boxHit=false;
+      const tb=f.images.find(b=>b&&b.totalImg);
+      if(tb){
+        note.textContent='🔍 Reading the marked total…';
+        try{const bt=await ocrBox(tb.totalImg,pk.langs),v=parseBoxAmount(bt);
+          if(my===reading&&v&&!touched.has('fa')){q('#fa').value=String(v);q('#fa').oninput({target:q('#fa')});q('#fa').classList.add('autof');got.push('amount (marked box)');boxHit=true}}
+        catch(e){console.error(e)}
+        if(my===reading)note.textContent='🔍 Reading receipt…';
+      }
       text=await run(pk.langs);r=parseReceipt(text);
       let used=pk.langs;
-      if(!r.amount&&!pk.full){const all=(S.ocrLangs||[]).filter(avail);used=all.length?all:['eng'];if(my===reading)note.textContent='🔍 Trying all chosen languages…';text=await run(used);r=parseReceipt(text)}
+      if(!r.amount&&!pk.full&&!boxHit){const all=(S.ocrLangs||[]).filter(avail);used=all.length?all:['eng'];if(my===reading)note.textContent='🔍 Trying all chosen languages…';text=await run(used);r=parseReceipt(text)}
       if(my!==reading||!document.body.contains(s))return;
       if(r.amount&&SHARED_CUR.includes(cur0)){const d=detectLang(text,used);if(d&&ocrLast[cur0]!==d){ocrLast[cur0]=d;DB.put('kv',ocrLast,'ocrLast')}}
       if(r.amount&&!touched.has('fa')&&!num(f.amount)){q('#fa').value=String(r.amount);q('#fa').oninput({target:q('#fa')});q('#fa').classList.add('autof');got.push('amount')}
@@ -1072,9 +1423,21 @@ async function openExpense(exp,newImages){
     if(f.cur===S.home)r=1;
     if(!(r>0)){toast('Enter the exchange rate or total');return}
     let cat=q('#fc').value;if(cat==='__other__'){cat=q('#cu').value.trim();if(!cat){toast('Type the custom category');return}}
+    const kind=q('#fk').value,exVal=num(q('#fx').value);
+    if(kind){
+      if(!(exVal>0)){toast('Enter the part that is not claimed');return}
+      if((f.exMode==='percent'?exVal/100:exVal/a)>1.00001){toast('The part not claimed is more than the receipt');return}
+    }
     const chf=(q('#ft').dataset.t==='1'&&num(q('#ft').value)>0)?r2(num(q('#ft').value)):r2(a*r);
     const rec={tripId:trip.id,date:f.date||todayISO(),category:cat,note:q('#fn').value.trim(),cur:f.cur,amount:a,rate:(q('#ft').dataset.t==='1'&&f.cur!==S.home)?chf/a:r,chf,payment:q('#fp').value,images:f.images,created:exp?exp.created:Date.now()};
+    if(kind){rec.kind=kind;rec.exMode=f.exMode;rec.exVal=exVal}
+    if(q('#fop').checked)rec.ownPage=true;
     if(exp)rec.id=exp.id;
+    const dupe=exps.find(x=>(!exp||x.id!==exp.id)&&x.date===rec.date&&Math.abs((Number(x.amount)||0)-a)<0.005);
+    if(dupe){
+      const n=exps.findIndex(x=>x.id===dupe.id)+1;
+      if(!await dlg({text:`Receipt #${n} in this trip has the same amount (${fmt2(dupe.amount)} ${dupe.cur}) and date (${dmy(rec.date)}). This could be a duplicate.`,ok:'Save anyway',cancel:'Cancel'}))return;
+    }
     await DB.put('expenses',rec);s.close();await loadExps();render();toast('Saved')
   };
   if(!isNew)q('#dl').onclick=async()=>{if(await askYes('Delete this receipt?','Delete',true)){await DB.del('expenses',exp.id);s.close();await loadExps();render()}};
@@ -1224,6 +1587,22 @@ async function ocrImage(blob,want){
   clearTimeout(ocrIdle);ocrIdle=setTimeout(async()=>{if(ocrW){try{await ocrW.terminate()}catch(e){}ocrW=null;ocrKey=''}},90000);
   return r.data.text||'';
 }
+async function ocrBox(blob,want){
+  const w=await ocrWorker(want);
+  let r;
+  try{await w.setParameters({tessedit_pageseg_mode:'6'});r=await w.recognize(blob)}
+  finally{try{await w.setParameters({tessedit_pageseg_mode:'3'})}catch(e){}}
+  clearTimeout(ocrIdle);ocrIdle=setTimeout(async()=>{if(ocrW){try{await ocrW.terminate()}catch(e){}ocrW=null;ocrKey=''}},90000);
+  return r.data.text||'';
+}
+/* amount from the small "Mark total" box */
+function parseBoxAmount(text){
+  const t=String(text).replace(/(?<=\d)[Oo]|[Oo](?=\d)/g,'0');
+  const a=[...t.matchAll(AMT)].map(m=>toAmount(m[1])).filter(v=>isFinite(v)&&v>0&&v<1e7);
+  if(a.length)return Math.max(...a);
+  const m=t.match(/\d+/g);if(m){const v=Math.max(...m.map(Number));if(v>0&&v<1e7)return v}
+  return NaN;
+}
 /* ---------- which language to read with ---------- */
 const CUR_LANG={JPY:'jpn',USD:'eng',GBP:'eng',AUD:'eng',CAD:'eng',NZD:'eng',INR:'eng',SGD:'eng',HKD:'eng',ZAR:'eng',SEK:'swe',NOK:'nor',DKK:'dan',ISK:'isl',PLN:'pol',CZK:'ces',HUF:'hun',RON:'ron',BGN:'bul',TRY:'tur',CNY:'chi_sim',KRW:'kor',RUB:'rus',UAH:'ukr',ILS:'heb',THB:'tha',VND:'vie',IDR:'ind',MYR:'msa',PHP:'eng',BRL:'por',MXN:'spa',ARS:'spa',CLP:'spa',COP:'spa',HRK:'hrv',RSD:'srp_latn',GEL:'kat',KZT:'rus',AED:'ara',SAR:'ara',EGP:'ara'};
 const SHARED_CUR=['EUR','CHF','CAD'];   // several languages: remember the last detected one
@@ -1232,6 +1611,8 @@ let ocrLast={};
 async function loadOcrLast(){ocrLast=(await DB.get('kv','ocrLast'))||{}}
 function pickLangs(cur){
   const chosen=(S.ocrLangs||[]).filter(avail);
+  const ct=trip&&countryOf(trip.country);
+  if(ct&&ct.lang&&ct.cur===cur&&avail(ct.lang))return{langs:[ct.lang],full:false};
   if(SHARED_CUR.includes(cur)){const l=ocrLast[cur];if(l&&avail(l))return{langs:[l],full:false}}
   else if(CUR_LANG[cur]&&avail(CUR_LANG[cur]))return{langs:[CUR_LANG[cur]],full:false};
   return{langs:chosen.length?chosen:['eng'],full:true};
@@ -1287,6 +1668,8 @@ const SET_PAGES=[
  ['lists','🏷️','Categories & payment','Expense categories with icons, payment methods'],
  ['signature','✍️','Signature','Your signature for the report'],
  ['appearance','🎨','Appearance','Color theme, light or dark'],
+ ['photos','📷','Photos','Automatic page frame, edge snapping'],
+ ['pdf','📄','PDF layout','How the receipt pages are arranged'],
  ['langs','🌐','Language packs','Languages for offline receipt reading'],
  ['backup','💾','Backup','Save or load all your data as a ZIP file'],
  ['privacy','🔒','Privacy','Where your data is stored'],
@@ -1299,6 +1682,7 @@ function settingsView(){
   return `<div class="pagehead"><button class="back" id="backBtn" aria-label="Back">‹</button><h1>${pg[2]}</h1></div>`+pageBody(pg[0]);
 }
 const EMOJIS='🚆 🚄 🚌 🚕 🚗 🚲 ✈️ 🚢 🅿️ ⛽ 🍽️ ☕ 🍺 🍕 🥐 🛒 🏨 🛏️ 📱 💻 🌐 📞 🎫 🎟️ 🏛️ 🧳 💼 📦 🧾 💳 🏷️ 🛠️ 💊 🎁 🧴 📚 🖨️ 📮 🧹 ⚽ 🎭 🏥 🧰 🔧 🌍 💡 📎'.split(' ');
+const LAYOUTS=[['2x2','Fixed 2 × 2 (default)','4 receipts per page, as in the accounting example'],['2x3','Fixed 2 × 3','6 receipts per page, smaller'],['1x2','1 × 2','2 receipts per page, for readable invoices'],['1x1','1 per page','Every receipt on its own page'],['auto','Auto','Fits the page to each receipt’s shape: narrow till slips side by side, bigger cells for A4-like documents']];
 function langRows(filter){
   const f=filter.trim().toLowerCase();
   return LANGS.filter(l=>!f||(l.n+' '+l.r+' '+l.c).toLowerCase().includes(f)).map(l=>{
@@ -1328,6 +1712,13 @@ function pageBody(id){
       `<button class="sw ${S.theme===k?'on':''}" data-theme="${k}"><i style="background:hsl(${t.h},${t.s}%,${t.l+8}%)"></i><span>${t.n}</span></button>`).join('')}</div></div>
     <div class="card"><div class="sub" style="margin-bottom:10px">Mode</div><div class="seg">${[['system','Auto'],['light','Light'],['dark','Dark']].map(([k,n])=>`<button data-mode="${k}" class="${S.mode===k?'on':''}">${n}</button>`).join('')}</div></div>
     <div class="sub">The phone’s bottom bar follows the theme when the app is installed. After updating from an older version, remove the app and install it again once.</div>`;
+  if(id==='photos')return `<div class="card"><label class="sub" style="display:flex;gap:10px;align-items:center"><input type="checkbox" id="optAuto" ${S.autoCrop!==false?'checked':''} style="width:22px;height:22px"> Frame the page automatically after taking a photo</label>
+    <div class="sub" style="margin:8px 0 14px">The editor opens with the page edges already found. You can always drag the frame freely.</div>
+    <label class="sub" style="display:flex;gap:10px;align-items:center"><input type="checkbox" id="optSnap" ${S.snap!==false?'checked':''} style="width:22px;height:22px"> Snap corners and sides to strong edges while dragging</label></div>
+    <div class="sub">While you drag a corner or side, a round magnifier shows the spot above your finger.</div>`;
+  if(id==='pdf')return `<div class="card"><div class="sub" style="margin-bottom:10px">Receipt pages after the report page. Every receipt keeps its number and caption.</div>`+
+    LAYOUTS.map(([k,n,d])=>`<label class="card layrow" style="padding:12px"><input type="radio" name="lay" value="${k}" ${(S.pdfLayout||'2x2')===k?'checked':''}><span><b>${n}</b><br><span class="sub">${d}</span></span></label>`).join('')+
+    `</div><div class="sub">In the receipt form you can switch on “Print on its own page” for a single big invoice.</div>`;
   if(id==='langs')return `<div class="card"><label class="sub" style="display:flex;gap:10px;align-items:center"><input type="checkbox" id="ocrAuto" ${S.ocrAuto?'checked':''} style="width:22px;height:22px"> Read receipts automatically (amount, currency, date, category)</label>
       <div class="sub" style="margin-top:8px">Runs on your phone, no internet needed. Results are only suggestions — always check them. English, German, French and Italian are built in. Amount, date and currency are found in any language; category guessing works for EN / DE / FR / IT.</div></div>
     <div class="card"><label class="f" style="margin:0">Download packs from<select id="packSrc">
@@ -1338,9 +1729,9 @@ function pageBody(id){
       <div class="sub" style="margin-top:8px">Only the language file is downloaded. No receipt data is ever sent anywhere.</div></div>
     <div class="card"><label class="f" style="margin:0 0 6px">Search language or country<input id="langQ" placeholder="e.g. Polish, Japan, Arabic" autocomplete="off"></label>
       <div class="sub" id="langSel" style="margin-bottom:6px"></div><div id="langList">${langRows('')}</div></div>`;
-  if(id==='backup')return `<div class="card"><b>Save backup</b><div class="sub" style="margin:6px 0 12px">One ZIP file with your settings (incl. bank details and signature), all trips, receipts and photos. Use it to move to another phone.</div><button class="btn primary block" id="bkSave">Save backup file</button></div>
+  if(id==='backup')return `<div class="card"><b>Save backup</b><div class="sub" style="margin:6px 0 12px">One ZIP file with your settings (incl. bank details and signature), all trips, receipts and photos. Use it to move to another phone. You can set an optional password.</div><button class="btn primary block" id="bkSave">Save backup file</button></div>
     <div class="card"><b>Load backup</b><div class="sub" style="margin:6px 0 12px">Choose a backup ZIP. You decide whether to replace everything or merge it with what is on this phone. Nothing is changed before you confirm.</div><button class="btn block" id="bkLoad">Choose backup file…</button><input type="file" id="bkFile" accept=".zip,application/zip" hidden></div>
-    <div class="sub">The backup file is not encrypted and contains your bank details and receipt photos — store it safely.</div>`;
+    <div class="sub">Without a password the backup file is not protected. A password uses the standard ZIP password method: it keeps casual readers out and opens with normal tools (7-Zip, WinZip, the phone’s file app), but it is weak encryption — do not rely on it for strong security. The file contains your bank details and receipt photos, so store it safely.</div>`;
   if(id==='privacy')return `<div class="card" style="font-size:14px">
     <p style="margin-top:0"><b>Your data stays on this device.</b> Bank details, receipts and photos are stored only in this browser’s storage on your phone. They are never uploaded to the web host or to any server, and the app has no backend.</p>
     <p>The PDF, ZIP and backup files are built on your phone and leave it only when you share or download them.</p>
@@ -1457,6 +1848,8 @@ function bindSettings(){
   if(sub==='about'){$('#logBtn').onclick=openChangelog;$('#licBtn').onclick=openLicense}
   if(sub==='signature')initSig();
   if(sub==='lists')bindCats();
+  if(sub==='photos'){$('#optAuto').onchange=e=>{S.autoCrop=e.target.checked;saveSettings()};$('#optSnap').onchange=e=>{S.snap=e.target.checked;saveSettings()}}
+  if(sub==='pdf')app.querySelectorAll('[name=lay]').forEach(r=>r.onchange=()=>{S.pdfLayout=r.value;saveSettings()});
   if(sub==='langs'){loadPackMeta().then(()=>{if(view==='settings'&&sub==='langs'){$('#langList').innerHTML=langRows('');bindLangs()}})}
   if(sub==='backup'){$('#bkSave').onclick=saveBackup;$('#bkLoad').onclick=()=>$('#bkFile').click();$('#bkFile').onchange=e=>{const f=e.target.files[0];e.target.value='';if(f)loadBackup(f)}}
   if(sub==='appearance'){
@@ -1478,12 +1871,70 @@ async function deliver(title,blob,name,type){
   s.querySelector('#cl').onclick=()=>s.close();
   return s;
 }
+/* ---------- ZIP with optional standard (ZipCrypto) password ---------- */
+const ZCRC=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
+const zcUp=(c,b)=>(ZCRC[(c^b)&255]^(c>>>8))>>>0;
+function zipCrc(u8){let c=0xFFFFFFFF;for(let i=0;i<u8.length;i++)c=zcUp(c,u8[i]);return(c^0xFFFFFFFF)>>>0}
+function zcKeys(pw){
+  const k=[305419896,591751049,878082192];
+  const up=b=>{k[0]=zcUp(k[0],b);k[1]=(k[1]+(k[0]&255))>>>0;k[1]=(Math.imul(k[1],134775813)+1)>>>0;k[2]=zcUp(k[2],k[1]>>>24)};
+  for(const b of fflate.strToU8(pw))up(b);
+  const ks=()=>{const t=(k[2]|2)&0xffff;return((t*(t^1))>>>8)&255};
+  return{enc:p=>{const c=(p^ks())&255;up(p);return c},dec:c=>{const p=(c^ks())&255;up(p);return p}};
+}
+/* files: {name: Uint8Array | [Uint8Array,{level}]}; pw: string or empty */
+function zipBuild(files,pw){
+  const parts=[],cd=[],te=new TextEncoder();let off=0;
+  const u16=(a,v)=>a.push(v&255,(v>>>8)&255),u32=(a,v)=>a.push(v&255,(v>>>8)&255,(v>>>16)&255,(v>>>24)&255);
+  const d=new Date(),dt=((d.getHours()<<11)|(d.getMinutes()<<5)|(d.getSeconds()>>1)),dd=(((d.getFullYear()-1980)<<9)|((d.getMonth()+1)<<5)|d.getDate());
+  for(const name in files){
+    const ent=files[name],data=Array.isArray(ent)?ent[0]:ent,o=Array.isArray(ent)?ent[1]:null,level=(o&&o.level!=null)?o.level:6;
+    const crc=zipCrc(data);let body=data,method=0;
+    if(level>0){const z=fflate.deflateSync(data,{level});if(z.length<data.length){body=z;method=8}}
+    if(pw){const K=zcKeys(pw),hdr=new Uint8Array(12);crypto.getRandomValues(hdr);hdr[11]=crc>>>24;
+      const out=new Uint8Array(12+body.length);for(let i=0;i<12;i++)out[i]=K.enc(hdr[i]);for(let i=0;i<body.length;i++)out[12+i]=K.enc(body[i]);body=out}
+    const nb=te.encode(name),flags=(pw?1:0)|0x800;
+    const lh=[];u32(lh,0x04034b50);u16(lh,20);u16(lh,flags);u16(lh,method);u16(lh,dt);u16(lh,dd);u32(lh,crc);u32(lh,body.length);u32(lh,data.length);u16(lh,nb.length);u16(lh,0);
+    parts.push(new Uint8Array(lh),nb,body);
+    const ch=[];u32(ch,0x02014b50);u16(ch,20);u16(ch,20);u16(ch,flags);u16(ch,method);u16(ch,dt);u16(ch,dd);u32(ch,crc);u32(ch,body.length);u32(ch,data.length);u16(ch,nb.length);u16(ch,0);u16(ch,0);u16(ch,0);u16(ch,0);u32(ch,0);u32(ch,off);
+    cd.push(new Uint8Array(ch),nb);
+    off+=lh.length+nb.length+body.length;
+  }
+  const cdSize=cd.reduce((a,p)=>a+p.length,0),n=Object.keys(files).length,e=[];
+  u32(e,0x06054b50);u16(e,0);u16(e,0);u16(e,n);u16(e,n);u32(e,cdSize);u32(e,off);u16(e,0);
+  return new Blob([...parts,...cd,new Uint8Array(e)],{type:'application/zip'});
+}
+function zipEntries(u8){
+  const dv=new DataView(u8.buffer,u8.byteOffset,u8.length);let e=-1;
+  for(let i=u8.length-22;i>=Math.max(0,u8.length-65557);i--){if(dv.getUint32(i,true)===0x06054b50){e=i;break}}
+  if(e<0)throw new Error('This is not a ZIP file.');
+  const n=dv.getUint16(e+10,true);let p=dv.getUint32(e+16,true);const out=[];
+  for(let i=0;i<n;i++){
+    if(dv.getUint32(p,true)!==0x02014b50)throw new Error('The ZIP file is damaged.');
+    const fl=dv.getUint16(p+8,true),me=dv.getUint16(p+10,true),tm=dv.getUint16(p+12,true),crc=dv.getUint32(p+16,true),cs=dv.getUint32(p+20,true),us=dv.getUint32(p+24,true),
+      nl=dv.getUint16(p+28,true),el=dv.getUint16(p+30,true),cl=dv.getUint16(p+32,true),lo=dv.getUint32(p+42,true);
+    out.push({name:new TextDecoder().decode(u8.subarray(p+46,p+46+nl)),fl,me,tm,crc,cs,us,lo});p+=46+nl+el+cl}
+  return out;
+}
+function zipExtract(u8,en,pw){
+  const dv=new DataView(u8.buffer,u8.byteOffset,u8.length),nl=dv.getUint16(en.lo+26,true),el=dv.getUint16(en.lo+28,true);
+  let d=u8.subarray(en.lo+30+nl+el,en.lo+30+nl+el+en.cs);
+  if(en.fl&1){const K=zcKeys(pw||''),o=new Uint8Array(d.length);for(let i=0;i<d.length;i++)o[i]=K.dec(d[i]);
+    const chk=(en.fl&8)?(en.tm>>>8):(en.crc>>>24);if(o[11]!==chk)throw new Error('WRONGPW');d=o.subarray(12)}
+  if(en.me===0)return d.slice();
+  if(en.me===8)return fflate.inflateSync(d);
+  throw new Error('Unsupported ZIP method');
+}
 async function saveBackup(){
-  if(!await dlg({text:'The backup file contains your bank details, signature, receipts and photos and is NOT encrypted. Store and share it carefully.',ok:'Create backup'}))return;
+  const pw1=await dlg({text:'Optional password for the backup. It is a standard ZIP password: weak encryption, but the file opens with normal tools. Leave it empty for no password. The backup contains your bank details, signature, receipts and photos — store it carefully.',input:true,type:'password',placeholder:'Password (optional)',ok:'Create backup'});
+  if(pw1===null)return;
+  const pw=pw1;
+  if(pw){const pw2=await dlg({text:'Type the password again. If you forget it, the backup cannot be opened.',input:true,type:'password',ok:'Confirm'});
+    if(pw2===null)return;if(pw2!==pw){await tell('The passwords do not match. No backup was created.');return}}
   const bg=openSheet('<h3>Creating backup…</h3><div class="sub">Please wait</div>');bg.dataset.lock='1';
   try{
     await new Promise(r=>setTimeout(r,30));
-    const {zipSync,strToU8}=fflate;const files={};
+    const {strToU8}=fflate;const files={};
     const allT=await DB.all('trips'),allE=await DB.all('expenses');
     const expOut=[];
     for(const e of allE){const names=[];let n=0;
@@ -1491,14 +1942,25 @@ async function saveBackup(){
       expOut.push({...e,images:names})}
     const set={...S};
     files['backup.json']=strToU8(JSON.stringify({app:'ReceiptArchive',version:APP_VERSION,created:new Date().toISOString(),settings:set,trips:allT,expenses:expOut,currentTrip:trip?trip.id:null}));
-    const blob=new Blob([zipSync(files)],{type:'application/zip'});bg.close();
-    await deliver('Backup ready',blob,`ReceiptArchive-backup-${stamp()}.zip`,'application/zip');
+    const blob=zipBuild(files,pw);bg.close();
+    await deliver(pw?'Backup ready (password protected)':'Backup ready',blob,`ReceiptArchive-backup-${stamp()}.zip`,'application/zip');
   }catch(e){console.error(e);bg.close();tell('Backup failed: '+e.message)}
 }
 async function loadBackup(file){
-  let data;
+  let data,cancelled=false;
   try{
-    const {unzipSync,strFromU8}=fflate;const z=unzipSync(new Uint8Array(await file.arrayBuffer()));
+    const {unzipSync,strFromU8}=fflate;const u8=new Uint8Array(await file.arrayBuffer());let z=null;
+    const ens=zipEntries(u8);
+    if(ens.some(x=>x.fl&1)){
+      const be=ens.find(x=>x.name==='backup.json');if(!be)throw new Error('This is not a Receipt Archive backup.');
+      for(;;){
+        const pw=await dlg({text:'This backup is password protected. Enter the password.',input:true,type:'password',ok:'Open',placeholder:'Password'});
+        if(pw===null){cancelled=true;break}
+        try{JSON.parse(strFromU8(zipExtract(u8,be,pw)));z={};for(const x of ens)if(!x.name.endsWith('/'))z[x.name]=zipExtract(u8,x,pw);break}
+        catch(e){z=null;await tell('Wrong password. Please try again.')}
+      }
+      if(cancelled)return;
+    }else z=unzipSync(u8);
     if(!z['backup.json'])throw new Error('This is not a Receipt Archive backup.');
     data=JSON.parse(strFromU8(z['backup.json']));if(data.app!=='ReceiptArchive')throw new Error('This is not a Receipt Archive backup.');
     data._z=z;
@@ -1568,9 +2030,9 @@ function drawReport(doc,rows,startNo,last,total,dateStr){
     cell(doc,X[1],yy,W[1],rh,r?dmy(r.date):'',{align:'center'});
     cell(doc,X[2],yy,W[2],rh,r?(r.category+(r.note?' - '+r.note:'')):'');
     cell(doc,X[3],yy,W[3],rh,r?r.cur:'');
-    cell(doc,X[4],yy,W[4],rh,r?String(r.amount):'',{align:'right'});
+    cell(doc,X[4],yy,W[4],rh,r?String(claimOrig(r)):'',{align:'right'});
     cell(doc,X[5],yy,W[5],rh,r?rateStr(r.rate):'',{align:'right'});
-    cell(doc,X[6],yy,W[6],rh,r?fmt2(r.chf).replace(/’/g,''):'-',{align:'right'});
+    cell(doc,X[6],yy,W[6],rh,r?fmt2(claimHome(r)).replace(/’/g,''):'-',{align:'right'});
   }
   const by=ty+8+20*rh+1.2;
   if(last){cell(doc,X[4]-12,by,W[4]+12,5.4,'Total',{bold:true,align:'right',border:false});
@@ -1586,33 +2048,83 @@ function drawReport(doc,rows,startNo,last,total,dateStr){
 async function imgDims(dataUrl){const i=await loadImg(dataUrl);return[i.naturalWidth,i.naturalHeight]}
 function captionLines(e,no,cont){
   const L=[`Document date: ${dmy(e.date)}`,`Category: ${e.category}${e.note?' - '+e.note:''}`,`Sum in receipt: ${e.amount} ${e.cur}`];
-  if(e.cur!==S.home){L.push(`Exchange rate${S.fee?' with bank fee':''}: ${rateStr(1/e.rate)} ${e.cur}/${S.home}`);L.push(`Sum in main currency: ${e.chf.toFixed(2)} ${S.home}`)}
+  const ratio=exRatio(e);
+  if(ratio){L.push(`${({colleague:'Paid for colleague',personal:'Personal'})[e.kind]||'Not claimed'}: ${exclOrig(e).toFixed(2)} ${e.cur}`);L.push(`Claimed: ${claimOrig(e).toFixed(2)} ${e.cur}`)}
+  if(e.cur!==S.home){L.push(`Exchange rate${S.fee?' with bank fee':''}: ${rateStr(1/e.rate)} ${e.cur}/${S.home}`);L.push(`Sum in main currency: ${e.chf.toFixed(2)} ${S.home}`);if(ratio)L.push(`Claimed in main currency: ${claimHome(e).toFixed(2)} ${S.home}`)}
   L.push(`Payment method: ${e.payment}`,`Trip/Customer: ${trip.name}`);return L;
 }
 const safeName=s=>s.replace(/[^\w\-]+/g,'_');
 const reportBase=()=>{const first=exps.reduce((m,e)=>e.date<m?e.date:m,exps[0].date);return `${first.slice(0,4)}${first.slice(5,7)}-${safeName(trip.name)}-ExpenseReport`};
+/* ---------- receipt page layouts ---------- */
+const PG_TOP=12,PG_H=275;   // usable area of an A4 portrait page: x 10..200, y 12..287
+function gridT(cols,rows){
+  const cw=190/cols,ch=PG_H/rows,slots=[],lines=[];
+  for(let j=0;j<=rows;j++)lines.push([10,PG_TOP+j*ch,200,PG_TOP+j*ch]);
+  for(let i=1;i<cols;i++)lines.push([10+i*cw,PG_TOP,10+i*cw,PG_TOP+rows*ch]);
+  for(let j=0;j<rows;j++)for(let i=0;i<cols;i++)slots.push([10+i*cw,PG_TOP+j*ch,cw,ch]);
+  return{slots,lines};
+}
+const PG_HALF=PG_H/2;
+const MIX_A={slots:[[10,PG_TOP,190,PG_HALF],[10,PG_TOP+PG_HALF,95,PG_HALF],[105,PG_TOP+PG_HALF,95,PG_HALF]],lines:[[10,PG_TOP,200,PG_TOP],[10,PG_TOP+PG_HALF,200,PG_TOP+PG_HALF],[10,PG_TOP+2*PG_HALF,200,PG_TOP+2*PG_HALF],[105,PG_TOP+PG_HALF,105,PG_TOP+2*PG_HALF]]};
+const MIX_B={slots:[[10,PG_TOP,95,PG_HALF],[105,PG_TOP,95,PG_HALF],[10,PG_TOP+PG_HALF,190,PG_HALF]],lines:[[10,PG_TOP,200,PG_TOP],[10,PG_TOP+PG_HALF,200,PG_TOP+PG_HALF],[10,PG_TOP+2*PG_HALF,200,PG_TOP+2*PG_HALF],[105,PG_TOP,105,PG_TOP+PG_HALF]]};
+const FIXED_TPL={'2x2':gridT(2,2),'2x3':gridT(2,3),'1x2':gridT(1,2),'1x1':gridT(1,1)};
+const AUTO_TPL=[gridT(1,1),gridT(1,2),gridT(2,1),gridT(3,1),gridT(2,2),gridT(3,2),gridT(2,3),MIX_A,MIX_B,gridT(1,3)];
+const capLinesOf=c=>c.k===0?captionLines(c.e).length:1;
+/* area (mm²) the receipt image gets in a slot */
+function cellFit(c,slot){
+  const aw=slot[2]-6,ah=slot[3]-(8+capLinesOf(c)*3.1+2)-3;if(aw<=0||ah<=0)return 0;
+  const r=c.dim?c.dim[0]/c.dim[1]:.7,w=Math.min(aw,ah*r);return w*(w/r);
+}
+/* Auto: pick the template that gives the next receipts big, readable cells and fills the page */
+function bestTemplate(list){
+  let best=FIXED_TPL['2x2'],bv=-1;const base=[10,PG_TOP,95,PG_HALF];
+  for(const t of AUTO_TPL){
+    const n=Math.min(t.slots.length,list.length);let ok=true,gs=0;
+    for(let i=0;i<n;i++){const s=t.slots[i];if(s[2]<55){ok=false;break}
+      const g=cellFit(list[i],s)/Math.max(1e-6,cellFit(list[i],base));if(g<.85){ok=false;break}gs+=Math.min(g,2.5)}
+    if(!ok)continue;const v=Math.pow(n,.6)*(gs/n);if(v>bv+1e-9){bv=v;best=t}
+  }
+  return best;
+}
+function planPages(cells,layout){
+  const pages=[];let i=0;
+  while(i<cells.length){
+    if(cells[i].e.ownPage){pages.push({tpl:FIXED_TPL['1x1'],cells:[cells[i]]});i++;continue}
+    let run=0;while(i+run<cells.length&&!cells[i+run].e.ownPage&&run<6)run++;
+    const tpl=layout==='auto'?bestTemplate(cells.slice(i,i+run)):(FIXED_TPL[layout]||FIXED_TPL['2x2']);
+    const n=Math.min(tpl.slots.length,run);
+    pages.push({tpl,cells:cells.slice(i,i+n)});i+=n;
+  }
+  return pages;
+}
+async function blobDims(b){const u=URL.createObjectURL(b);try{const i=await loadImg(u);return[i.naturalWidth,i.naturalHeight]}finally{URL.revokeObjectURL(u)}}
 async function makeDoc(prog,reportOnly){
   const {jsPDF}=window.jspdf;
   const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4',compress:true});
   const dateStr=dmy(todayISO());const total=r2(totalChf());
   const nRep=Math.max(1,Math.ceil(exps.length/20));
   const cells=[];exps.forEach((e,i)=>{const imgs=e.images&&e.images.length?e.images:[null];imgs.forEach((b,k)=>cells.push({e,no:i+1,b,k,n:imgs.length}))});
-  const nRec=reportOnly?0:Math.ceil(cells.length/4),N=nRep+nRec;
+  const layout=S.pdfLayout||'2x2';let pages=[];
+  if(!reportOnly){
+    if(layout==='auto'){prog('Measuring receipts');for(const c of cells){c.dim=null;if(c.b){try{c.dim=await blobDims(c.b)}catch(e){}}}}
+    pages=planPages(cells,layout);
+  }
+  window.__lastPlan=pages;
+  const nRec=pages.length,N=nRep+nRec;
   for(let p=0;p<nRep;p++){if(p)doc.addPage('a4','landscape');drawReport(doc,exps.slice(p*20,p*20+20),p*20+1,p===nRep-1,total,dateStr)}
   for(let p=0;p<nRec;p++){
     prog(`Receipt page ${p+1} of ${nRec}`);await new Promise(r=>setTimeout(r,10));
     doc.addPage('a4','portrait');
     doc.setFont('helvetica','normal');doc.setFontSize(10);doc.setTextColor(0);doc.text(`Page ${nRep+p+1}/${N}`,105,8,{align:'center'});
-    doc.setDrawColor(0);doc.setLineWidth(.3);const top=12,ch=(297-top-10)/2;
-    doc.line(10,top,200,top);doc.line(10,top+ch,200,top+ch);doc.line(10,top+2*ch,200,top+2*ch);doc.line(105,top,105,top+2*ch);
-    for(let i=0;i<4;i++){const c=cells[p*4+i];if(!c)break;
-      const x=10+(i%2)*95,y=top+(i>>1)*ch;
+    doc.setDrawColor(0);doc.setLineWidth(.3);
+    const pg=pages[p];pg.tpl.lines.forEach(l=>doc.line(l[0],l[1],l[2],l[3]));
+    for(let i=0;i<pg.cells.length;i++){const c=pg.cells[i],[x,y,w,h]=pg.tpl.slots[i];
       doc.setFont('helvetica','bold');doc.setFontSize(8);doc.text(String(c.no)+(c.n>1?` (${c.k+1}/${c.n})`:''),x+3,y+4.5);
       doc.setFont('helvetica','normal');doc.setFontSize(6.8);
-      const L=c.k===0?captionLines(c.e):['(continued)'];L.forEach((l,j)=>doc.text(doc.splitTextToSize(l,88)[0],x+3,y+8+j*3.1));
-      const it=y+8+L.length*3.1+2,ah=y+ch-it-3,aw=89;
-      if(c.b){const d=await blobToDataURL(c.b);const[iw,ih]=await imgDims(d);const k=Math.min(aw/iw,ah/ih);const w=iw*k,h=ih*k;
-        doc.addImage(d,'JPEG',x+3+(aw-w)/2,it,w,h,undefined,'FAST')}
+      const L=c.k===0?captionLines(c.e):['(continued)'];L.forEach((l,j)=>doc.text(doc.splitTextToSize(l,w-7)[0],x+3,y+8+j*3.1));
+      const it=y+8+L.length*3.1+2,ah=y+h-it-3,aw=w-6;
+      if(c.b){const d=await blobToDataURL(c.b);const[iw,ih]=c.dim||await imgDims(d);const k=Math.min(aw/iw,ah/ih);const iw2=iw*k,ih2=ih*k;
+        doc.addImage(d,'JPEG',x+3+(aw-iw2)/2,it,iw2,ih2,undefined,'FAST')}
       else{doc.setTextColor(120);doc.text('(no receipt image)',x+3,it+4);doc.setTextColor(0)}
     }
   }
@@ -1641,7 +2153,9 @@ async function exportPdf(){
       <button class="btn primary block" id="sh">Share / send</button><div style="height:10px"></div><button class="btn block" id="dw">Download</button>
       <div style="height:10px"></div><button class="btn block" id="zp">🗜 ZIP: summary + separate receipt images</button>
       <label class="sub" style="display:flex;gap:8px;align-items:center;margin:8px 2px 0"><input type="checkbox" id="zf" style="width:20px;height:20px"> Also include the full PDF in the ZIP</label>
+      ${tripStatus(trip)==='open'?'<div style="height:12px"></div><button class="btn block" id="ms">✅ Mark trip as submitted</button>':''}
       <div style="height:12px"></div><button class="btn block" id="cl">Close</button>`);
+    const ms=s.querySelector('#ms');if(ms)ms.onclick=async()=>{trip.status='submitted';await DB.put('trips',trip);ms.remove();toast('Trip marked as submitted');render()};
     const file=new File([blob],name,{type:'application/pdf'});
     const canShare=navigator.canShare&&navigator.canShare({files:[file]});
     if(!canShare)s.querySelector('#sh').style.display='none';
@@ -1657,8 +2171,8 @@ async function exportPdf(){
   }catch(err){console.error(err);bg.close();tell('PDF generation failed: '+err.message)}
 }
 
-const APP_VERSION='1.3.0';
-const CHANGELOG=[{"v":"1.3.0","d":"2026-11-05","n":["Faster receipt reading: the language follows the currency (e.g. JPY reads Japanese, USD English)","For EUR and CHF the app remembers the last detected language and reuses it; if nothing is found it retries with all chosen languages"]},{"v":"1.2.1","d":"2026-11-05","n":["Phone bottom bar: app colors set to black (reinstall the app once to see it)"]},{"v":"1.2.0","d":"2026-11-05","n":["New home page: add a receipt to your last trip, open your trips or start a new one","Trips list is now its own page, newest first, with dates, receipt count and total","Photo editor simplified: drag a corner to fix perspective, drag a side to crop","Categories have icons; choose Other to type your own; edit categories and icons in Settings","Reads receipts offline (amount, currency, date, category guess) — suggestions only, you confirm","Language packs page: English, German, French and Italian built in, ~100 more downloadable","Backup: save everything as one ZIP and load it on another phone (replace or merge)","Export a ZIP with the summary PDF and every receipt as a separate JPEG","Pop-ups now say Insert instead of the web address","Bottom bar of the phone follows the chosen theme"]},{"v":"1.1.0","d":"2026-11-05","n":["Top bar with app name, version and a menu button for navigation","Settings reorganised: a short menu with a separate page for each group","New Appearance page: color themes and light / dark mode","Photo editor: perspective correction (drag the 4 corners)","Add PDF and image files as receipts (e.g. a train ticket from your email)","New receipts reuse the currency of the last receipt in the trip","Version number on the opening screen"]},{"v": "1.0.0", "d": "2026-11-05", "n": ["Renamed to Receipt Archive", "Version number and changelog in Settings", "Licensed under GPL-3.0", "Published on GitHub Pages so it can be installed on phones"]}, {"v": "0.3.0", "d": "2026-11-05", "n": ["Privacy information and license in Settings"]}, {"v": "0.2.0", "d": "2026-11-05", "n": ["Photo editor: crop, rotate and straighten after taking a picture", "Install button in Settings", "App icon and quick opening animation", "Layout fixes for phone screens"]}, {"v": "0.1.0", "d": "2026-11-05", "n": ["First version: receipts with photos, automatic exchange rates with manual override", "One-click PDF in the company format (report page plus numbered receipt scans)", "Settings for bank details, header fields and signature"]}];
+const APP_VERSION='1.4.0';
+const CHANGELOG=[{"v":"1.4.0","d":"2026-11-06","n":["Photo editor: the page edges are found automatically right after taking a photo, and corners and sides snap to strong edges while you drag","A round magnifier shows the spot above your finger while you drag a corner or side","New Mark total button in the editor: draw a box around the total and only that box is read for the amount","Warning before saving a receipt whose amount and date already exist in the trip","Trip status (Open, Submitted, Reimbursed), Mark as submitted after making the PDF, trip dates and country (preselects currency and reading language)","Split / exclusions: paid for colleague, personal or partial (amount or percent); the report and statistics count only the claimed amount","Backup can be protected with a standard ZIP password","New Statistics page: total per trip, per category and per month, with year and trip filters","PDF layout setting: 2 x 2 (default), 2 x 3, 1 x 2, 1 per page or Auto, plus Print on its own page for single receipts"]},{"v":"1.3.0","d":"2026-11-05","n":["Faster receipt reading: the language follows the currency (e.g. JPY reads Japanese, USD English)","For EUR and CHF the app remembers the last detected language and reuses it; if nothing is found it retries with all chosen languages"]},{"v":"1.2.1","d":"2026-11-05","n":["Phone bottom bar: app colors set to black (reinstall the app once to see it)"]},{"v":"1.2.0","d":"2026-11-05","n":["New home page: add a receipt to your last trip, open your trips or start a new one","Trips list is now its own page, newest first, with dates, receipt count and total","Photo editor simplified: drag a corner to fix perspective, drag a side to crop","Categories have icons; choose Other to type your own; edit categories and icons in Settings","Reads receipts offline (amount, currency, date, category guess) — suggestions only, you confirm","Language packs page: English, German, French and Italian built in, ~100 more downloadable","Backup: save everything as one ZIP and load it on another phone (replace or merge)","Export a ZIP with the summary PDF and every receipt as a separate JPEG","Pop-ups now say Insert instead of the web address","Bottom bar of the phone follows the chosen theme"]},{"v":"1.1.0","d":"2026-11-05","n":["Top bar with app name, version and a menu button for navigation","Settings reorganised: a short menu with a separate page for each group","New Appearance page: color themes and light / dark mode","Photo editor: perspective correction (drag the 4 corners)","Add PDF and image files as receipts (e.g. a train ticket from your email)","New receipts reuse the currency of the last receipt in the trip","Version number on the opening screen"]},{"v": "1.0.0", "d": "2026-11-05", "n": ["Renamed to Receipt Archive", "Version number and changelog in Settings", "Licensed under GPL-3.0", "Published on GitHub Pages so it can be installed on phones"]}, {"v": "0.3.0", "d": "2026-11-05", "n": ["Privacy information and license in Settings"]}, {"v": "0.2.0", "d": "2026-11-05", "n": ["Photo editor: crop, rotate and straighten after taking a picture", "Install button in Settings", "App icon and quick opening animation", "Layout fixes for phone screens"]}, {"v": "0.1.0", "d": "2026-11-05", "n": ["First version: receipts with photos, automatic exchange rates with manual override", "One-click PDF in the company format (report page plus numbered receipt scans)", "Settings for bank details, header fields and signature"]}];
 const LICENSE_TEXT="Receipt Archive\nCopyright (C) 2026 the Receipt Archive authors\n\nThis program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.\n\nThis program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.\n\nYou should have received a copy of the GNU General Public License along with this program (see the LICENSE file in the repository). If not, see https://www.gnu.org/licenses/gpl-3.0.html\n\nThird-party software included:\njsPDF (https://github.com/parallax/jsPDF), MIT License, Copyright (c) 2010-2021 James Hall; (c) 2015-2021 yWorks GmbH.\nPDF.js (https://github.com/mozilla/pdf.js), Apache License 2.0, Copyright Mozilla Foundation and contributors.\nTesseract.js (https://github.com/naptha/tesseract.js), Apache License 2.0, Copyright (c) 2018 tesseract.js contributors; Tesseract OCR engine and trained language data (Google / tessdata), Apache License 2.0.\nfflate (https://github.com/101arrowz/fflate), MIT License, Copyright (c) 2023 Arjun Barrett.";
 /* ---------- install ---------- */
 let deferredPrompt=null;

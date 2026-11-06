@@ -4,6 +4,9 @@ Installable web app (Android and iPhone) to photograph receipts on business trip
 
 **Privacy:** all data (bank details, receipts, photos) stays in the browser storage of your own device. There is no server. Receipt reading (OCR) runs on the phone. Online requests: exchange rates (frankfurter.dev, currency and date only) and, only if you choose to download an extra language pack, that language file.
 
+## Features (1.4.0)
+Page-edge auto-frame with snapping and magnifier, "Mark total" box for the amount, duplicate warning, trip status / dates / country, split and exclusions, password-protected backup (standard ZIP password), statistics page, selectable PDF receipt layouts (2x2, 2x3, 1x2, 1 per page, Auto).
+
 ## Install on your phone
 Open https://dusiaclaw.github.io/ReceiptArchive/ in Chrome (Android) and use **Settings → Install app**, or the ⋮ menu → *Install app*. On iPhone use Safari → Share → *Add to Home Screen*.
 

@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.4.0 - 2026-11-06
+- Photo editor: page edges are found automatically right after taking a photo; corners and sides snap to strong edges while dragging (can be switched off)
+- Round magnifier above the finger while dragging a corner or side
+- New "Mark total" button in the editor: draw a box around the total and only that box is read for the amount
+- Warning before saving a receipt whose amount and date already exist in the same trip
+- Trip status (Open, Submitted, Reimbursed), "Mark trip as submitted" after making the PDF, trip dates and country (preselects the currency and the reading language)
+- Split / exclusions: paid for colleague, personal or partial (amount or percent); report PDF and statistics count only the claimed amount
+- Backup can be protected with a standard ZIP password
+- New Statistics page: total per trip, per category and per month, with year and trip filters
+- PDF layout setting: 2 x 2 (default), 2 x 3, 1 x 2, 1 per page or Auto, plus "Print on its own page" per receipt
+
 ## 1.3.0 - 2026-11-05
 - Faster receipt reading: the language follows the currency (e.g. JPY reads Japanese, USD English)
 - For EUR and CHF the app remembers the last detected language and reuses it; if nothing is found it retries with all chosen languages
