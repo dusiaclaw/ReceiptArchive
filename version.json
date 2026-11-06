@@ -1,6 +1,14 @@
 {
- "version": "1.8.1",
+ "version": "1.8.2",
  "notes": [
+  {
+   "v": "1.8.2",
+   "d": "2026-11-06",
+   "n": [
+    "Fixed: with a downloaded language pack (for example Japanese) receipt reading stayed on \"Reading receipt…\" forever; it now reads, and a stuck start ends with a message after 45 seconds",
+    "Yen receipts: amounts after ¥ or before 円 are found, currency JPY is set, and dates like 2024/11/12 are recognised"
+   ]
+  },
   {
    "v": "1.8.1",
    "d": "2026-11-06",
@@ -37,14 +45,6 @@
    "n": [
     "Icons instead of emojis everywhere in the app; categories can be given any of 44 icons (your existing categories keep the closest matching icon)",
     "Two sample trips (202610 Zürich and 202611 Espoo) with fake receipts marked SAMPLE come with a fresh install; delete them any time in My trips"
-   ]
-  },
-  {
-   "v": "1.5.0",
-   "d": "2026-11-06",
-   "n": [
-    "Home page has four big buttons: Add receipt, Last trip, New trip, My trips",
-    "App icon with a black outline (reinstall the app to see it on the home screen)"
    ]
   }
  ]

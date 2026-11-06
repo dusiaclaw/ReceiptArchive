@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.8.2 - 2026-11-06
+- Fixed: with a downloaded language pack (for example Japanese) receipt reading stayed on "Reading receipt…" forever; it now reads, and a stuck start ends with a message after 45 seconds
+- Yen receipts: amounts after ¥ or before 円 are found, currency JPY is set, and dates like 2024/11/12 are recognised
+
 ## 1.8.1 - 2026-11-06
 - Receipt form: the whole date is visible again (narrower padding in the date and category fields)
 
