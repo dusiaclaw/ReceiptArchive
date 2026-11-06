@@ -11,7 +11,7 @@ Page-edge auto-frame with snapping and magnifier, "Mark total" box for the amoun
 Open https://dusiaclaw.github.io/ReceiptArchive/ in Chrome (Android) and use **Settings → Install app**, or the ⋮ menu → *Install app*. On iPhone use Safari → Share → *Add to Home Screen*.
 
 ## Updating
-Edit `APP_VERSION` and `CHANGELOG` in `index.html` and `CHANGELOG.md` for each release. The app updates on the next online start.
+Edit `APP_VERSION` and `CHANGELOG` in `index.html` and `CHANGELOG.md` for each release, then run `python3 make-version.py` (writes `version.json`, which tells installed apps that an update exists). The app updates on the next online start.
 
 ## License
 GPL-3.0, see [LICENSE](LICENSE). Includes [jsPDF](https://github.com/parallax/jsPDF) (MIT), [Tabler Icons](https://github.com/tabler/tabler-icons) (MIT), [PDF.js](https://github.com/mozilla/pdf.js) (Apache-2.0), [Tesseract.js](https://github.com/naptha/tesseract.js) (Apache-2.0, files in `ocr/`) and [fflate](https://github.com/101arrowz/fflate) (MIT).

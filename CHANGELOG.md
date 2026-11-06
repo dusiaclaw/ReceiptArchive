@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.7.0 - 2026-11-06
+- Close button (X) on every pop-up; forms with unsaved changes ask before discarding
+- The receipt form keeps Save and Delete always visible at the bottom; rarely used options are under More options
+- Report: page 1 now looks like the company template; with more than 20 receipts, page 1 has no signature and says the table continues, later pages carry a short header and the signature and total are on the last page
+- You can edit the file name before the PDF or ZIP is created (suggested: YearMonth_TripName)
+- When online, the app tells you if a new version is available (popup at each start, a refresh button and the new version number in the top bar)
+- Settings > Appearance: switch all icons to emoji and back
+
 ## 1.6.0 - 2026-11-06
 - Icons instead of emojis everywhere in the app; categories can be given any of 44 icons (existing categories keep the closest matching icon)
 - Two sample trips (202610 Zürich and 202611 Espoo) with fake receipts marked SAMPLE come with a fresh install; delete them any time in My trips

@@ -1,0 +1,47 @@
+{
+ "version": "1.7.0",
+ "notes": [
+  {
+   "v": "1.7.0",
+   "d": "2026-11-06",
+   "n": [
+    "Close button (X) on every pop-up; forms with unsaved changes ask before discarding",
+    "The receipt form keeps Save and Delete always visible at the bottom; rarely used options are under More options",
+    "Report: page 1 now looks like the company template; with more than 20 receipts, page 1 has no signature and says the table continues, later pages carry a short header and the signature and total are on the last page",
+    "You can edit the file name before the PDF or ZIP is created (suggested: YearMonth_TripName)",
+    "When online, the app tells you if a new version is available (popup at each start, a refresh button and the new version number in the top bar)",
+    "Settings > Appearance: switch all icons to emoji and back"
+   ]
+  },
+  {
+   "v": "1.6.0",
+   "d": "2026-11-06",
+   "n": [
+    "Icons instead of emojis everywhere in the app; categories can be given any of 44 icons (your existing categories keep the closest matching icon)",
+    "Two sample trips (202610 Zürich and 202611 Espoo) with fake receipts marked SAMPLE come with a fresh install; delete them any time in My trips"
+   ]
+  },
+  {
+   "v": "1.5.0",
+   "d": "2026-11-06",
+   "n": [
+    "Home page has four big buttons: Add receipt, Last trip, New trip, My trips",
+    "App icon with a black outline (reinstall the app to see it on the home screen)"
+   ]
+  },
+  {
+   "v": "1.4.2",
+   "d": "2026-11-06",
+   "n": [
+    "A one-time “What’s new” window appears after the app has been updated"
+   ]
+  },
+  {
+   "v": "1.4.1",
+   "d": "2026-11-06",
+   "n": [
+    "New trip: name, dates and country are asked together"
+   ]
+  }
+ ]
+}

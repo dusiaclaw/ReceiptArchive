@@ -161,6 +161,16 @@ html{background:var(--bg)}
 .photos .x .ic{width:16px;height:16px;margin:0;vertical-align:middle}
 .editor .tools .btn[aria-label] .ic{margin:0}
 .ocrnote .ic{width:1.1em;height:1.1em}
+.sx{position:sticky;top:0;float:right;z-index:3;width:38px;height:38px;margin:-4px -4px 0 8px;border-radius:50%;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;cursor:pointer;padding:0}
+.sx .ic{width:20px;height:20px;margin:0}
+.sbar{position:sticky;bottom:calc(-20px - env(safe-area-inset-bottom));margin:8px -16px calc(-20px - env(safe-area-inset-bottom));padding:10px 16px calc(12px + env(safe-area-inset-bottom));background:var(--bg);border-top:1px solid var(--line);display:flex;gap:10px;z-index:2}
+.sbar .btn{flex:1}.sbar .btn.primary{flex:2}
+details.more{margin:0 0 12px}details.more summary{cursor:pointer;font-weight:600;color:var(--muted);font-size:14px;padding:6px 2px;list-style:none}
+details.more summary::-webkit-details-marker{display:none}details.more summary::before{content:"+ ";}details.more[open] summary::before{content:"− ";}
+.upd-btn{width:40px;height:40px;border:0;background:none;color:var(--accent);cursor:pointer;display:grid;place-items:center;border-radius:10px}
+.upd-btn .ic{width:24px;height:24px;margin:0}
+.ab-title span.new{color:var(--accent);font-weight:700}
+.emcustom{display:flex;gap:8px;align-items:center;margin:12px 0}.emcustom input{flex:1;min-height:46px;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);font-size:20px}
 </style>
 </head>
 <body>
@@ -620,9 +630,15 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
 <script>
 'use strict';
 /* ---------- icons (Tabler Icons, MIT licence, bundled inline so the app works offline) ---------- */
-const ICONS={"train":"<path d=\"M21 13c0 -3.87 -3.37 -7 -10 -7h-8\"/> <path d=\"M3 15h16a2 2 0 0 0 2 -2\"/> <path d=\"M3 6v5h17.5\"/> <path d=\"M3 11v4\"/> <path d=\"M8 11v-5\"/> <path d=\"M13 11v-4.5\"/> <path d=\"M3 19h18\"/>","bus":"<path d=\"M4 17a2 2 0 1 0 4 0a2 2 0 1 0 -4 0\"/> <path d=\"M16 17a2 2 0 1 0 4 0a2 2 0 1 0 -4 0\"/> <path d=\"M4 17h-2v-11a1 1 0 0 1 1 -1h14a5 7 0 0 1 5 7v5h-2m-4 0h-8\"/> <path d=\"M16 5l1.5 7l4.5 0\"/> <path d=\"M2 10l15 0\"/> <path d=\"M7 5l0 5\"/> <path d=\"M12 5l0 5\"/>","car":"<path d=\"M5 17a2 2 0 1 0 4 0a2 2 0 1 0 -4 0\"/> <path d=\"M15 17a2 2 0 1 0 4 0a2 2 0 1 0 -4 0\"/> <path d=\"M5 17h-2v-6l2 -5h9l4 5h1a2 2 0 0 1 2 2v4h-2m-4 0h-6m-6 -6h15m-6 0v-5\"/>","bike":"<path d=\"M2 18a3 3 0 1 0 6 0a3 3 0 0 0 -6 0\"/> <path d=\"M16 18a3 3 0 1 0 6 0a3 3 0 0 0 -6 0\"/> <path d=\"M12 19v-4l-3 -3l5 -4l2 3h3\"/> <path d=\"M13.007 5a2 2 0 1 0 4 0a2 2 0 1 0 -4 0\"/>","plane":"<path d=\"M16 10h4a2 2 0 0 1 0 4h-4l-4 7h-3l2 -7h-4l-2 2h-3l2 -4l-2 -4h3l2 2h4l-2 -7h3l4 7\"/>","ship":"<path d=\"M2 20a2.4 2.4 0 0 0 2 1a2.4 2.4 0 0 0 2 -1a2.4 2.4 0 0 1 2 -1a2.4 2.4 0 0 1 2 1a2.4 2.4 0 0 0 2 1a2.4 2.4 0 0 0 2 -1a2.4 2.4 0 0 1 2 -1a2.4 2.4 0 0 1 2 1a2.4 2.4 0 0 0 2 1a2.4 2.4 0 0 0 2 -1\"/> <path d=\"M4 18l-1 -5h18l-2 4\"/> <path d=\"M5 13v-6h8l4 6\"/> <path d=\"M7 7v-4h-1\"/>","parking":"<path d=\"M3 5a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-14\"/> <path d=\"M10 16v-8h2.667c.736 0 1.333 .895 1.333 2s-.597 2 -1.333 2h-2.667\"/>","fuel":"<path d=\"M14 11h1a2 2 0 0 1 2 2v3a1.5 1.5 0 0 0 3 0v-7l-3 -3\"/> <path d=\"M4 20v-14a2 2 0 0 1 2 -2h6a2 2 0 0 1 2 2v14\"/> <path d=\"M3 20l12 0\"/> <path d=\"M18 7v1a1 1 0 0 0 1 1h1\"/> <path d=\"M4 11l10 0\"/>","food":"<path d=\"M19 3v12h-5c-.023 -3.681 .184 -7.406 5 -12m0 12v6h-1v-3m-10 -14v17m-3 -17v3a3 3 0 1 0 6 0v-3\"/>","coffee":"<path d=\"M3 14c.83 .642 2.077 1.017 3.5 1c1.423 .017 2.67 -.358 3.5 -1c.83 -.642 2.077 -1.017 3.5 -1c1.423 -.017 2.67 .358 3.5 1\"/> <path d=\"M8 3a2.4 2.4 0 0 0 -1 2a2.4 2.4 0 0 0 1 2\"/> <path d=\"M12 3a2.4 2.4 0 0 0 -1 2a2.4 2.4 0 0 0 1 2\"/> <path d=\"M3 10h14v5a6 6 0 0 1 -6 6h-2a6 6 0 0 1 -6 -6v-5\"/> <path d=\"M16.746 16.726a3 3 0 1 0 .252 -5.555\"/>","beer":"<path d=\"M9 21h6a1 1 0 0 0 1 -1v-3.625c0 -1.397 .29 -2.775 .845 -4.025l.31 -.7c.556 -1.25 .845 -2.253 .845 -3.65v-4a1 1 0 0 0 -1 -1h-10a1 1 0 0 0 -1 1v4c0 1.397 .29 2.4 .845 3.65l.31 .7a9.931 9.931 0 0 1 .845 4.025v3.625a1 1 0 0 0 1 1\"/> <path d=\"M6 8h12\"/>","pizza":"<path d=\"M12 21.5c-3.04 0 -5.952 -.714 -8.5 -1.983l8.5 -16.517l8.5 16.517a19.09 19.09 0 0 1 -8.5 1.983\"/> <path d=\"M5.38 15.866a14.94 14.94 0 0 0 6.815 1.634a14.944 14.944 0 0 0 6.502 -1.479\"/> <path d=\"M13 11.01v-.01\"/> <path d=\"M11 14v-.01\"/>","bread":"<path d=\"M18 4a3 3 0 0 1 2 5.235v8.765a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-8.764a3 3 0 0 1 1.824 -5.231h12.176v-.005\"/>","cart":"<path d=\"M4 19a2 2 0 1 0 4 0a2 2 0 1 0 -4 0\"/> <path d=\"M15 19a2 2 0 1 0 4 0a2 2 0 1 0 -4 0\"/> <path d=\"M17 17h-11v-14h-2\"/> <path d=\"M6 5l14 1l-1 7h-13\"/>","bed":"<path d=\"M5 9a2 2 0 1 0 4 0a2 2 0 1 0 -4 0\"/> <path d=\"M22 17v-3h-20\"/> <path d=\"M2 8v9\"/> <path d=\"M12 14h10v-2a3 3 0 0 0 -3 -3h-7v5\"/>","building":"<path d=\"M3 21l18 0\"/> <path d=\"M5 21v-14l8 -4v18\"/> <path d=\"M19 21v-10l-6 -4\"/> <path d=\"M9 9l0 .01\"/> <path d=\"M9 12l0 .01\"/> <path d=\"M9 15l0 .01\"/> <path d=\"M9 18l0 .01\"/>","phone":"<path d=\"M6 5a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2v-14\"/> <path d=\"M11 4h2\"/> <path d=\"M12 17v.01\"/>","laptop":"<path d=\"M3 19l18 0\"/> <path d=\"M5 7a1 1 0 0 1 1 -1h12a1 1 0 0 1 1 1v8a1 1 0 0 1 -1 1h-12a1 1 0 0 1 -1 -1l0 -8\"/>","wifi":"<path d=\"M12 18l.01 0\"/> <path d=\"M9.172 15.172a4 4 0 0 1 5.656 0\"/> <path d=\"M6.343 12.343a8 8 0 0 1 11.314 0\"/> <path d=\"M3.515 9.515c4.686 -4.687 12.284 -4.687 17 0\"/>","call":"<path d=\"M5 4h4l2 5l-2.5 1.5a11 11 0 0 0 5 5l1.5 -2.5l5 2v4a2 2 0 0 1 -2 2a16 16 0 0 1 -15 -15a2 2 0 0 1 2 -2\"/>","world":"<path d=\"M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0\"/> <path d=\"M3.6 9h16.8\"/> <path d=\"M3.6 15h16.8\"/> <path d=\"M11.5 3a17 17 0 0 0 0 18\"/> <path d=\"M12.5 3a17 17 0 0 1 0 18\"/>","ticket":"<path d=\"M15 5l0 2\"/> <path d=\"M15 11l0 2\"/> <path d=\"M15 17l0 2\"/> <path d=\"M5 5h14a2 2 0 0 1 2 2v3a2 2 0 0 0 0 4v3a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-3a2 2 0 0 0 0 -4v-3a2 2 0 0 1 2 -2\"/>","museum":"<path d=\"M3 21l18 0\"/> <path d=\"M3 10l18 0\"/> <path d=\"M5 6l7 -3l7 3\"/> <path d=\"M4 10l0 11\"/> <path d=\"M20 10l0 11\"/> <path d=\"M8 14l0 3\"/> <path d=\"M12 14l0 3\"/> <path d=\"M16 14l0 3\"/>","luggage":"<path d=\"M6 8a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2l0 -10\"/> <path d=\"M9 6v-1a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v1\"/> <path d=\"M6 10h12\"/> <path d=\"M6 16h12\"/> <path d=\"M9 20v1\"/> <path d=\"M15 20v1\"/>","briefcase":"<path d=\"M3 9a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v9a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2l0 -9\"/> <path d=\"M8 7v-2a2 2 0 0 1 2 -2h4a2 2 0 0 1 2 2v2\"/> <path d=\"M12 12l0 .01\"/> <path d=\"M3 13a20 20 0 0 0 18 0\"/>","package":"<path d=\"M12 3l8 4.5l0 9l-8 4.5l-8 -4.5l0 -9l8 -4.5\"/> <path d=\"M12 12l8 -4.5\"/> <path d=\"M12 12l0 9\"/> <path d=\"M12 12l-8 -4.5\"/> <path d=\"M16 5.25l-8 4.5\"/>","receipt":"<path d=\"M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2\"/>","card":"<path d=\"M3 8a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v8a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3l0 -8\"/> <path d=\"M3 10l18 0\"/> <path d=\"M7 15l.01 0\"/> <path d=\"M11 15l2 0\"/>","tag":"<path d=\"M6.5 7.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0\"/> <path d=\"M3 6v5.172a2 2 0 0 0 .586 1.414l7.71 7.71a2.41 2.41 0 0 0 3.408 0l5.592 -5.592a2.41 2.41 0 0 0 0 -3.408l-7.71 -7.71a2 2 0 0 0 -1.414 -.586h-5.172a3 3 0 0 0 -3 3\"/>","tool":"<path d=\"M7 10h3v-3l-3.5 -3.5a6 6 0 0 1 8 8l6 6a2 2 0 0 1 -3 3l-6 -6a6 6 0 0 1 -8 -8l3.5 3.5\"/>","tools":"<path d=\"M3 21h4l13 -13a1.5 1.5 0 0 0 -4 -4l-13 13v4\"/> <path d=\"M14.5 5.5l4 4\"/> <path d=\"M12 8l-5 -5l-4 4l5 5\"/> <path d=\"M7 8l-1.5 1.5\"/> <path d=\"M16 12l5 5l-4 4l-5 -5\"/> <path d=\"M16 17l-1.5 1.5\"/>","pill":"<path d=\"M4.5 12.5l8 -8a4.94 4.94 0 0 1 7 7l-8 8a4.94 4.94 0 0 1 -7 -7\"/> <path d=\"M8.5 8.5l7 7\"/>","gift":"<path d=\"M3 9a1 1 0 0 1 1 -1h16a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1l0 -2\"/> <path d=\"M12 8l0 13\"/> <path d=\"M19 12v7a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-7\"/> <path d=\"M7.5 8a2.5 2.5 0 0 1 0 -5a4.8 8 0 0 1 4.5 5a4.8 8 0 0 1 4.5 -5a2.5 2.5 0 0 1 0 5\"/>","books":"<path d=\"M5 5a1 1 0 0 1 1 -1h2a1 1 0 0 1 1 1v14a1 1 0 0 1 -1 1h-2a1 1 0 0 1 -1 -1l0 -14\"/> <path d=\"M9 5a1 1 0 0 1 1 -1h2a1 1 0 0 1 1 1v14a1 1 0 0 1 -1 1h-2a1 1 0 0 1 -1 -1l0 -14\"/> <path d=\"M5 8h4\"/> <path d=\"M9 16h4\"/> <path d=\"M13.803 4.56l2.184 -.53c.562 -.135 1.133 .19 1.282 .732l3.695 13.418a1.02 1.02 0 0 1 -.634 1.219l-.133 .041l-2.184 .53c-.562 .135 -1.133 -.19 -1.282 -.732l-3.695 -13.418a1.02 1.02 0 0 1 .634 -1.219l.133 -.041\"/> <path d=\"M14 9l4 -1\"/> <path d=\"M16 16l3.923 -.98\"/>","printer":"<path d=\"M17 17h2a2 2 0 0 0 2 -2v-4a2 2 0 0 0 -2 -2h-14a2 2 0 0 0 -2 2v4a2 2 0 0 0 2 2h2\"/> <path d=\"M17 9v-4a2 2 0 0 0 -2 -2h-6a2 2 0 0 0 -2 2v4\"/> <path d=\"M7 15a2 2 0 0 1 2 -2h6a2 2 0 0 1 2 2v4a2 2 0 0 1 -2 2h-6a2 2 0 0 1 -2 -2l0 -4\"/>","mail":"<path d=\"M10 21v-6.5a3.5 3.5 0 0 0 -7 0v6.5h18v-6a4 4 0 0 0 -4 -4h-10.5\"/> <path d=\"M12 11v-8h4l2 2l-2 2h-4\"/> <path d=\"M6 15h1\"/>","broom":"<path d=\"M3 21v-4a4 4 0 1 1 4 4h-4\"/> <path d=\"M21 3a16 16 0 0 0 -12.8 10.2\"/> <path d=\"M21 3a16 16 0 0 1 -10.2 12.8\"/> <path d=\"M10.6 9a9 9 0 0 1 4.4 4.4\"/>","bottle":"<path d=\"M10 5h4v-2a1 1 0 0 0 -1 -1h-2a1 1 0 0 0 -1 1v2\"/> <path d=\"M14 3.5c0 1.626 .507 3.212 1.45 4.537l.05 .07a8.093 8.093 0 0 1 1.5 4.694v6.199a2 2 0 0 1 -2 2h-6a2 2 0 0 1 -2 -2v-6.2c0 -1.682 .524 -3.322 1.5 -4.693l.05 -.07a7.823 7.823 0 0 0 1.45 -4.537\"/> <path d=\"M7 14.803a2.4 2.4 0 0 0 1 -.803a2.4 2.4 0 0 1 2 -1a2.4 2.4 0 0 1 2 1a2.4 2.4 0 0 0 2 1a2.4 2.4 0 0 0 2 -1a2.4 2.4 0 0 1 1 -.805\"/>","sport":"<path d=\"M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0\"/> <path d=\"M12 7l4.76 3.45l-1.76 5.55h-6l-1.76 -5.55l4.76 -3.45\"/> <path d=\"M12 7v-4m3 13l2.5 3m-.74 -8.55l3.74 -1.45m-11.44 7.05l-2.56 2.95m.74 -8.55l-3.74 -1.45\"/>","theater":"<path d=\"M13.192 9h6.616a2 2 0 0 1 1.992 2.183l-.567 6.182a4 4 0 0 1 -3.983 3.635h-1.5a4 4 0 0 1 -3.983 -3.635l-.567 -6.182a2 2 0 0 1 1.992 -2.183\"/> <path d=\"M15 13h.01\"/> <path d=\"M18 13h.01\"/> <path d=\"M15 16.5c1 .667 2 .667 3 0\"/> <path d=\"M8.632 15.982a4.037 4.037 0 0 1 -.382 .018h-1.5a4 4 0 0 1 -3.983 -3.635l-.567 -6.182a2 2 0 0 1 1.992 -2.183h6.616a2 2 0 0 1 2 2\"/> <path d=\"M6 8h.01\"/> <path d=\"M9 8h.01\"/> <path d=\"M6 12c.764 -.51 1.528 -.63 2.291 -.36\"/>","health":"<path d=\"M6 4h-1a2 2 0 0 0 -2 2v3.5a5.5 5.5 0 0 0 11 0v-3.5a2 2 0 0 0 -2 -2h-1\"/> <path d=\"M8 15a6 6 0 1 0 12 0v-3\"/> <path d=\"M11 3v2\"/> <path d=\"M6 3v2\"/> <path d=\"M18 10a2 2 0 1 0 4 0a2 2 0 1 0 -4 0\"/>","bulb":"<path d=\"M3 12h1m8 -9v1m8 8h1m-15.4 -6.4l.7 .7m12.1 -.7l-.7 .7\"/> <path d=\"M9 16a5 5 0 1 1 6 0a3.5 3.5 0 0 0 -1 3a2 2 0 0 1 -4 0a3.5 3.5 0 0 0 -1 -3\"/> <path d=\"M9.7 17l4.6 0\"/>","clip":"<path d=\"M15 7l-6.5 6.5a1.5 1.5 0 0 0 3 3l6.5 -6.5a3 3 0 0 0 -6 -6l-6.5 6.5a4.5 4.5 0 0 0 9 9l6.5 -6.5\"/>","pin":"<path d=\"M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0\"/> <path d=\"M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0\"/>","home":"<path d=\"M5 12l-2 0l9 -9l9 9l-2 0\"/> <path d=\"M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7\"/> <path d=\"M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6\"/>","chart":"<path d=\"M3 13a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -6\"/> <path d=\"M15 9a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -10\"/> <path d=\"M9 5a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v14a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -14\"/> <path d=\"M4 20h14\"/>","doc":"<path d=\"M14 3v4a1 1 0 0 0 1 1h4\"/> <path d=\"M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2\"/> <path d=\"M9 9l1 0\"/> <path d=\"M9 13l6 0\"/> <path d=\"M9 17l6 0\"/>","settings":"<path d=\"M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065\"/> <path d=\"M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0\"/>","history":"<path d=\"M12 8l0 4l2 2\"/> <path d=\"M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5\"/>","camera":"<path d=\"M5 7h1a2 2 0 0 0 2 -2a1 1 0 0 1 1 -1h6a1 1 0 0 1 1 1a2 2 0 0 0 2 2h1a2 2 0 0 1 2 2v9a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-9a2 2 0 0 1 2 -2\"/> <path d=\"M9 13a3 3 0 1 0 6 0a3 3 0 0 0 -6 0\"/>","photo":"<path d=\"M15 8h.01\"/> <path d=\"M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-12\"/> <path d=\"M3 16l5 -5c.928 -.893 2.072 -.893 3 0l5 5\"/> <path d=\"M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3\"/>","folder":"<path d=\"M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2\"/>","plus":"<path d=\"M12 5l0 14\"/> <path d=\"M5 12l14 0\"/>","back":"<path d=\"M15 6l-6 6l6 6\"/>","next":"<path d=\"M9 6l6 6l-6 6\"/>","menu":"<path d=\"M4 6l16 0\"/> <path d=\"M4 12l16 0\"/> <path d=\"M4 18l16 0\"/>","x":"<path d=\"M18 6l-12 12\"/> <path d=\"M6 6l12 12\"/>","rotl":"<path d=\"M15 4.55a8 8 0 0 0 -6 14.9m0 -4.45v5h-5\"/> <path d=\"M18.37 7.16l0 .01\"/> <path d=\"M13 19.94l0 .01\"/> <path d=\"M16.84 18.37l0 .01\"/> <path d=\"M19.37 15.1l0 .01\"/> <path d=\"M19.94 11l0 .01\"/>","rotr":"<path d=\"M9 4.55a8 8 0 0 1 6 14.9m0 -4.45v5h5\"/> <path d=\"M5.63 7.16l0 .01\"/> <path d=\"M4.06 11l0 .01\"/> <path d=\"M4.63 15.1l0 .01\"/> <path d=\"M7.16 18.37l0 .01\"/> <path d=\"M11 19.94l0 .01\"/>","magnet":"<path d=\"M4 13v-8a2 2 0 0 1 2 -2h1a2 2 0 0 1 2 2v8a2 2 0 0 0 6 0v-8a2 2 0 0 1 2 -2h1a2 2 0 0 1 2 2v8a8 8 0 0 1 -16 0\"/> <path d=\"M4 8l5 0\"/> <path d=\"M15 8l4 0\"/>","mark":"<path d=\"M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0\"/> <path d=\"M12 3l0 4\"/> <path d=\"M12 21l0 -3\"/> <path d=\"M3 12l4 0\"/> <path d=\"M21 12l-3 0\"/> <path d=\"M12 12l0 .01\"/>","search":"<path d=\"M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0\"/> <path d=\"M21 21l-6 -6\"/>","sparkles":"<path d=\"M16 18a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2m0 -12a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2m-7 12a6 6 0 0 1 6 -6a6 6 0 0 1 -6 -6a6 6 0 0 1 -6 6a6 6 0 0 1 6 6\"/>","pencil":"<path d=\"M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4\"/> <path d=\"M13.5 6.5l4 4\"/>","check":"<path d=\"M5 12l5 5l10 -10\"/>","zip":"<path d=\"M6 20.735a2 2 0 0 1 -1 -1.735v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2h-1\"/> <path d=\"M11 17a2 2 0 0 1 2 2v2a1 1 0 0 1 -1 1h-2a1 1 0 0 1 -1 -1v-2a2 2 0 0 1 2 -2\"/> <path d=\"M11 5l-1 0\"/> <path d=\"M13 7l-1 0\"/> <path d=\"M11 9l-1 0\"/> <path d=\"M13 11l-1 0\"/> <path d=\"M11 13l-1 0\"/> <path d=\"M13 15l-1 0\"/>","ok":"<path d=\"M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0\"/> <path d=\"M9 12l2 2l4 -4\"/>","money":"<path d=\"M16.7 8a3 3 0 0 0 -2.7 -2h-4a3 3 0 0 0 0 6h4a3 3 0 0 1 0 6h-4a3 3 0 0 1 -2.7 -2\"/> <path d=\"M12 3v3m0 12v3\"/>","sign":"<path d=\"M3 17c3.333 -3.333 5 -6 5 -8c0 -3 -1 -3 -2 -3s-2.032 1.085 -2 3c.034 2.048 1.658 4.877 2.5 6c1.5 2 2.5 2.5 3.5 1l2 -3c.333 2.667 1.333 4 3 4c.53 0 2.639 -2 3 -2c.517 0 1.517 .667 3 2\"/>","palette":"<path d=\"M12 21a9 9 0 0 1 0 -18c4.97 0 9 3.582 9 8c0 1.06 -.474 2.078 -1.318 2.828c-.844 .75 -1.989 1.172 -3.182 1.172h-2.5a2 2 0 0 0 -1 3.75a1.3 1.3 0 0 1 -1 2.25\"/> <path d=\"M7.5 10.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0\"/> <path d=\"M11.5 7.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0\"/> <path d=\"M15.5 10.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0\"/>","lang":"<path d=\"M9 6.371c0 4.418 -2.239 6.629 -5 6.629\"/> <path d=\"M4 6.371h7\"/> <path d=\"M5 9c0 2.144 2.252 3.908 6 4\"/> <path d=\"M12 20l4 -9l4 9\"/> <path d=\"M19.1 18h-6.2\"/> <path d=\"M6.694 3l.793 .582\"/>","save":"<path d=\"M6 4h10l4 4v10a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2\"/> <path d=\"M10 14a2 2 0 1 0 4 0a2 2 0 1 0 -4 0\"/> <path d=\"M14 4l0 4l-6 0l0 -4\"/>","lock":"<path d=\"M5 13a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-6\"/> <path d=\"M11 16a1 1 0 1 0 2 0a1 1 0 0 0 -2 0\"/> <path d=\"M8 11v-4a4 4 0 1 1 8 0v4\"/>","download":"<path d=\"M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2\"/> <path d=\"M7 11l5 5l5 -5\"/> <path d=\"M12 4l0 12\"/>","info":"<path d=\"M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0\"/> <path d=\"M12 9h.01\"/> <path d=\"M11 12h1v4h1\"/>","bank":"<path d=\"M3 21l18 0\"/> <path d=\"M3 10l18 0\"/> <path d=\"M5 6l7 -3l7 3\"/> <path d=\"M4 10l0 11\"/> <path d=\"M20 10l0 11\"/> <path d=\"M8 14l0 3\"/> <path d=\"M12 14l0 3\"/> <path d=\"M16 14l0 3\"/>"};
-const ic=(n,c='')=>`<svg class="ic${c?' '+c:''}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n]||ICONS.tag}</svg>`;
+const ICONS={"refresh":"<path d=\"M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4\"/> <path d=\"M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4\"/>","train":"<path d=\"M21 13c0 -3.87 -3.37 -7 -10 -7h-8\"/> <path d=\"M3 15h16a2 2 0 0 0 2 -2\"/> <path d=\"M3 6v5h17.5\"/> <path d=\"M3 11v4\"/> <path d=\"M8 11v-5\"/> <path d=\"M13 11v-4.5\"/> <path d=\"M3 19h18\"/>","bus":"<path d=\"M4 17a2 2 0 1 0 4 0a2 2 0 1 0 -4 0\"/> <path d=\"M16 17a2 2 0 1 0 4 0a2 2 0 1 0 -4 0\"/> <path d=\"M4 17h-2v-11a1 1 0 0 1 1 -1h14a5 7 0 0 1 5 7v5h-2m-4 0h-8\"/> <path d=\"M16 5l1.5 7l4.5 0\"/> <path d=\"M2 10l15 0\"/> <path d=\"M7 5l0 5\"/> <path d=\"M12 5l0 5\"/>","car":"<path d=\"M5 17a2 2 0 1 0 4 0a2 2 0 1 0 -4 0\"/> <path d=\"M15 17a2 2 0 1 0 4 0a2 2 0 1 0 -4 0\"/> <path d=\"M5 17h-2v-6l2 -5h9l4 5h1a2 2 0 0 1 2 2v4h-2m-4 0h-6m-6 -6h15m-6 0v-5\"/>","bike":"<path d=\"M2 18a3 3 0 1 0 6 0a3 3 0 0 0 -6 0\"/> <path d=\"M16 18a3 3 0 1 0 6 0a3 3 0 0 0 -6 0\"/> <path d=\"M12 19v-4l-3 -3l5 -4l2 3h3\"/> <path d=\"M13.007 5a2 2 0 1 0 4 0a2 2 0 1 0 -4 0\"/>","plane":"<path d=\"M16 10h4a2 2 0 0 1 0 4h-4l-4 7h-3l2 -7h-4l-2 2h-3l2 -4l-2 -4h3l2 2h4l-2 -7h3l4 7\"/>","ship":"<path d=\"M2 20a2.4 2.4 0 0 0 2 1a2.4 2.4 0 0 0 2 -1a2.4 2.4 0 0 1 2 -1a2.4 2.4 0 0 1 2 1a2.4 2.4 0 0 0 2 1a2.4 2.4 0 0 0 2 -1a2.4 2.4 0 0 1 2 -1a2.4 2.4 0 0 1 2 1a2.4 2.4 0 0 0 2 1a2.4 2.4 0 0 0 2 -1\"/> <path d=\"M4 18l-1 -5h18l-2 4\"/> <path d=\"M5 13v-6h8l4 6\"/> <path d=\"M7 7v-4h-1\"/>","parking":"<path d=\"M3 5a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-14\"/> <path d=\"M10 16v-8h2.667c.736 0 1.333 .895 1.333 2s-.597 2 -1.333 2h-2.667\"/>","fuel":"<path d=\"M14 11h1a2 2 0 0 1 2 2v3a1.5 1.5 0 0 0 3 0v-7l-3 -3\"/> <path d=\"M4 20v-14a2 2 0 0 1 2 -2h6a2 2 0 0 1 2 2v14\"/> <path d=\"M3 20l12 0\"/> <path d=\"M18 7v1a1 1 0 0 0 1 1h1\"/> <path d=\"M4 11l10 0\"/>","food":"<path d=\"M19 3v12h-5c-.023 -3.681 .184 -7.406 5 -12m0 12v6h-1v-3m-10 -14v17m-3 -17v3a3 3 0 1 0 6 0v-3\"/>","coffee":"<path d=\"M3 14c.83 .642 2.077 1.017 3.5 1c1.423 .017 2.67 -.358 3.5 -1c.83 -.642 2.077 -1.017 3.5 -1c1.423 -.017 2.67 .358 3.5 1\"/> <path d=\"M8 3a2.4 2.4 0 0 0 -1 2a2.4 2.4 0 0 0 1 2\"/> <path d=\"M12 3a2.4 2.4 0 0 0 -1 2a2.4 2.4 0 0 0 1 2\"/> <path d=\"M3 10h14v5a6 6 0 0 1 -6 6h-2a6 6 0 0 1 -6 -6v-5\"/> <path d=\"M16.746 16.726a3 3 0 1 0 .252 -5.555\"/>","beer":"<path d=\"M9 21h6a1 1 0 0 0 1 -1v-3.625c0 -1.397 .29 -2.775 .845 -4.025l.31 -.7c.556 -1.25 .845 -2.253 .845 -3.65v-4a1 1 0 0 0 -1 -1h-10a1 1 0 0 0 -1 1v4c0 1.397 .29 2.4 .845 3.65l.31 .7a9.931 9.931 0 0 1 .845 4.025v3.625a1 1 0 0 0 1 1\"/> <path d=\"M6 8h12\"/>","pizza":"<path d=\"M12 21.5c-3.04 0 -5.952 -.714 -8.5 -1.983l8.5 -16.517l8.5 16.517a19.09 19.09 0 0 1 -8.5 1.983\"/> <path d=\"M5.38 15.866a14.94 14.94 0 0 0 6.815 1.634a14.944 14.944 0 0 0 6.502 -1.479\"/> <path d=\"M13 11.01v-.01\"/> <path d=\"M11 14v-.01\"/>","bread":"<path d=\"M18 4a3 3 0 0 1 2 5.235v8.765a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-8.764a3 3 0 0 1 1.824 -5.231h12.176v-.005\"/>","cart":"<path d=\"M4 19a2 2 0 1 0 4 0a2 2 0 1 0 -4 0\"/> <path d=\"M15 19a2 2 0 1 0 4 0a2 2 0 1 0 -4 0\"/> <path d=\"M17 17h-11v-14h-2\"/> <path d=\"M6 5l14 1l-1 7h-13\"/>","bed":"<path d=\"M5 9a2 2 0 1 0 4 0a2 2 0 1 0 -4 0\"/> <path d=\"M22 17v-3h-20\"/> <path d=\"M2 8v9\"/> <path d=\"M12 14h10v-2a3 3 0 0 0 -3 -3h-7v5\"/>","building":"<path d=\"M3 21l18 0\"/> <path d=\"M5 21v-14l8 -4v18\"/> <path d=\"M19 21v-10l-6 -4\"/> <path d=\"M9 9l0 .01\"/> <path d=\"M9 12l0 .01\"/> <path d=\"M9 15l0 .01\"/> <path d=\"M9 18l0 .01\"/>","phone":"<path d=\"M6 5a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2v-14\"/> <path d=\"M11 4h2\"/> <path d=\"M12 17v.01\"/>","laptop":"<path d=\"M3 19l18 0\"/> <path d=\"M5 7a1 1 0 0 1 1 -1h12a1 1 0 0 1 1 1v8a1 1 0 0 1 -1 1h-12a1 1 0 0 1 -1 -1l0 -8\"/>","wifi":"<path d=\"M12 18l.01 0\"/> <path d=\"M9.172 15.172a4 4 0 0 1 5.656 0\"/> <path d=\"M6.343 12.343a8 8 0 0 1 11.314 0\"/> <path d=\"M3.515 9.515c4.686 -4.687 12.284 -4.687 17 0\"/>","call":"<path d=\"M5 4h4l2 5l-2.5 1.5a11 11 0 0 0 5 5l1.5 -2.5l5 2v4a2 2 0 0 1 -2 2a16 16 0 0 1 -15 -15a2 2 0 0 1 2 -2\"/>","world":"<path d=\"M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0\"/> <path d=\"M3.6 9h16.8\"/> <path d=\"M3.6 15h16.8\"/> <path d=\"M11.5 3a17 17 0 0 0 0 18\"/> <path d=\"M12.5 3a17 17 0 0 1 0 18\"/>","ticket":"<path d=\"M15 5l0 2\"/> <path d=\"M15 11l0 2\"/> <path d=\"M15 17l0 2\"/> <path d=\"M5 5h14a2 2 0 0 1 2 2v3a2 2 0 0 0 0 4v3a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-3a2 2 0 0 0 0 -4v-3a2 2 0 0 1 2 -2\"/>","museum":"<path d=\"M3 21l18 0\"/> <path d=\"M3 10l18 0\"/> <path d=\"M5 6l7 -3l7 3\"/> <path d=\"M4 10l0 11\"/> <path d=\"M20 10l0 11\"/> <path d=\"M8 14l0 3\"/> <path d=\"M12 14l0 3\"/> <path d=\"M16 14l0 3\"/>","luggage":"<path d=\"M6 8a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2l0 -10\"/> <path d=\"M9 6v-1a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v1\"/> <path d=\"M6 10h12\"/> <path d=\"M6 16h12\"/> <path d=\"M9 20v1\"/> <path d=\"M15 20v1\"/>","briefcase":"<path d=\"M3 9a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v9a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2l0 -9\"/> <path d=\"M8 7v-2a2 2 0 0 1 2 -2h4a2 2 0 0 1 2 2v2\"/> <path d=\"M12 12l0 .01\"/> <path d=\"M3 13a20 20 0 0 0 18 0\"/>","package":"<path d=\"M12 3l8 4.5l0 9l-8 4.5l-8 -4.5l0 -9l8 -4.5\"/> <path d=\"M12 12l8 -4.5\"/> <path d=\"M12 12l0 9\"/> <path d=\"M12 12l-8 -4.5\"/> <path d=\"M16 5.25l-8 4.5\"/>","receipt":"<path d=\"M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2\"/>","card":"<path d=\"M3 8a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v8a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3l0 -8\"/> <path d=\"M3 10l18 0\"/> <path d=\"M7 15l.01 0\"/> <path d=\"M11 15l2 0\"/>","tag":"<path d=\"M6.5 7.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0\"/> <path d=\"M3 6v5.172a2 2 0 0 0 .586 1.414l7.71 7.71a2.41 2.41 0 0 0 3.408 0l5.592 -5.592a2.41 2.41 0 0 0 0 -3.408l-7.71 -7.71a2 2 0 0 0 -1.414 -.586h-5.172a3 3 0 0 0 -3 3\"/>","tool":"<path d=\"M7 10h3v-3l-3.5 -3.5a6 6 0 0 1 8 8l6 6a2 2 0 0 1 -3 3l-6 -6a6 6 0 0 1 -8 -8l3.5 3.5\"/>","tools":"<path d=\"M3 21h4l13 -13a1.5 1.5 0 0 0 -4 -4l-13 13v4\"/> <path d=\"M14.5 5.5l4 4\"/> <path d=\"M12 8l-5 -5l-4 4l5 5\"/> <path d=\"M7 8l-1.5 1.5\"/> <path d=\"M16 12l5 5l-4 4l-5 -5\"/> <path d=\"M16 17l-1.5 1.5\"/>","pill":"<path d=\"M4.5 12.5l8 -8a4.94 4.94 0 0 1 7 7l-8 8a4.94 4.94 0 0 1 -7 -7\"/> <path d=\"M8.5 8.5l7 7\"/>","gift":"<path d=\"M3 9a1 1 0 0 1 1 -1h16a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1l0 -2\"/> <path d=\"M12 8l0 13\"/> <path d=\"M19 12v7a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-7\"/> <path d=\"M7.5 8a2.5 2.5 0 0 1 0 -5a4.8 8 0 0 1 4.5 5a4.8 8 0 0 1 4.5 -5a2.5 2.5 0 0 1 0 5\"/>","books":"<path d=\"M5 5a1 1 0 0 1 1 -1h2a1 1 0 0 1 1 1v14a1 1 0 0 1 -1 1h-2a1 1 0 0 1 -1 -1l0 -14\"/> <path d=\"M9 5a1 1 0 0 1 1 -1h2a1 1 0 0 1 1 1v14a1 1 0 0 1 -1 1h-2a1 1 0 0 1 -1 -1l0 -14\"/> <path d=\"M5 8h4\"/> <path d=\"M9 16h4\"/> <path d=\"M13.803 4.56l2.184 -.53c.562 -.135 1.133 .19 1.282 .732l3.695 13.418a1.02 1.02 0 0 1 -.634 1.219l-.133 .041l-2.184 .53c-.562 .135 -1.133 -.19 -1.282 -.732l-3.695 -13.418a1.02 1.02 0 0 1 .634 -1.219l.133 -.041\"/> <path d=\"M14 9l4 -1\"/> <path d=\"M16 16l3.923 -.98\"/>","printer":"<path d=\"M17 17h2a2 2 0 0 0 2 -2v-4a2 2 0 0 0 -2 -2h-14a2 2 0 0 0 -2 2v4a2 2 0 0 0 2 2h2\"/> <path d=\"M17 9v-4a2 2 0 0 0 -2 -2h-6a2 2 0 0 0 -2 2v4\"/> <path d=\"M7 15a2 2 0 0 1 2 -2h6a2 2 0 0 1 2 2v4a2 2 0 0 1 -2 2h-6a2 2 0 0 1 -2 -2l0 -4\"/>","mail":"<path d=\"M10 21v-6.5a3.5 3.5 0 0 0 -7 0v6.5h18v-6a4 4 0 0 0 -4 -4h-10.5\"/> <path d=\"M12 11v-8h4l2 2l-2 2h-4\"/> <path d=\"M6 15h1\"/>","broom":"<path d=\"M3 21v-4a4 4 0 1 1 4 4h-4\"/> <path d=\"M21 3a16 16 0 0 0 -12.8 10.2\"/> <path d=\"M21 3a16 16 0 0 1 -10.2 12.8\"/> <path d=\"M10.6 9a9 9 0 0 1 4.4 4.4\"/>","bottle":"<path d=\"M10 5h4v-2a1 1 0 0 0 -1 -1h-2a1 1 0 0 0 -1 1v2\"/> <path d=\"M14 3.5c0 1.626 .507 3.212 1.45 4.537l.05 .07a8.093 8.093 0 0 1 1.5 4.694v6.199a2 2 0 0 1 -2 2h-6a2 2 0 0 1 -2 -2v-6.2c0 -1.682 .524 -3.322 1.5 -4.693l.05 -.07a7.823 7.823 0 0 0 1.45 -4.537\"/> <path d=\"M7 14.803a2.4 2.4 0 0 0 1 -.803a2.4 2.4 0 0 1 2 -1a2.4 2.4 0 0 1 2 1a2.4 2.4 0 0 0 2 1a2.4 2.4 0 0 0 2 -1a2.4 2.4 0 0 1 1 -.805\"/>","sport":"<path d=\"M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0\"/> <path d=\"M12 7l4.76 3.45l-1.76 5.55h-6l-1.76 -5.55l4.76 -3.45\"/> <path d=\"M12 7v-4m3 13l2.5 3m-.74 -8.55l3.74 -1.45m-11.44 7.05l-2.56 2.95m.74 -8.55l-3.74 -1.45\"/>","theater":"<path d=\"M13.192 9h6.616a2 2 0 0 1 1.992 2.183l-.567 6.182a4 4 0 0 1 -3.983 3.635h-1.5a4 4 0 0 1 -3.983 -3.635l-.567 -6.182a2 2 0 0 1 1.992 -2.183\"/> <path d=\"M15 13h.01\"/> <path d=\"M18 13h.01\"/> <path d=\"M15 16.5c1 .667 2 .667 3 0\"/> <path d=\"M8.632 15.982a4.037 4.037 0 0 1 -.382 .018h-1.5a4 4 0 0 1 -3.983 -3.635l-.567 -6.182a2 2 0 0 1 1.992 -2.183h6.616a2 2 0 0 1 2 2\"/> <path d=\"M6 8h.01\"/> <path d=\"M9 8h.01\"/> <path d=\"M6 12c.764 -.51 1.528 -.63 2.291 -.36\"/>","health":"<path d=\"M6 4h-1a2 2 0 0 0 -2 2v3.5a5.5 5.5 0 0 0 11 0v-3.5a2 2 0 0 0 -2 -2h-1\"/> <path d=\"M8 15a6 6 0 1 0 12 0v-3\"/> <path d=\"M11 3v2\"/> <path d=\"M6 3v2\"/> <path d=\"M18 10a2 2 0 1 0 4 0a2 2 0 1 0 -4 0\"/>","bulb":"<path d=\"M3 12h1m8 -9v1m8 8h1m-15.4 -6.4l.7 .7m12.1 -.7l-.7 .7\"/> <path d=\"M9 16a5 5 0 1 1 6 0a3.5 3.5 0 0 0 -1 3a2 2 0 0 1 -4 0a3.5 3.5 0 0 0 -1 -3\"/> <path d=\"M9.7 17l4.6 0\"/>","clip":"<path d=\"M15 7l-6.5 6.5a1.5 1.5 0 0 0 3 3l6.5 -6.5a3 3 0 0 0 -6 -6l-6.5 6.5a4.5 4.5 0 0 0 9 9l6.5 -6.5\"/>","pin":"<path d=\"M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0\"/> <path d=\"M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0\"/>","home":"<path d=\"M5 12l-2 0l9 -9l9 9l-2 0\"/> <path d=\"M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7\"/> <path d=\"M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6\"/>","chart":"<path d=\"M3 13a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -6\"/> <path d=\"M15 9a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -10\"/> <path d=\"M9 5a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v14a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -14\"/> <path d=\"M4 20h14\"/>","doc":"<path d=\"M14 3v4a1 1 0 0 0 1 1h4\"/> <path d=\"M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2\"/> <path d=\"M9 9l1 0\"/> <path d=\"M9 13l6 0\"/> <path d=\"M9 17l6 0\"/>","settings":"<path d=\"M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065\"/> <path d=\"M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0\"/>","history":"<path d=\"M12 8l0 4l2 2\"/> <path d=\"M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5\"/>","camera":"<path d=\"M5 7h1a2 2 0 0 0 2 -2a1 1 0 0 1 1 -1h6a1 1 0 0 1 1 1a2 2 0 0 0 2 2h1a2 2 0 0 1 2 2v9a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-9a2 2 0 0 1 2 -2\"/> <path d=\"M9 13a3 3 0 1 0 6 0a3 3 0 0 0 -6 0\"/>","photo":"<path d=\"M15 8h.01\"/> <path d=\"M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-12\"/> <path d=\"M3 16l5 -5c.928 -.893 2.072 -.893 3 0l5 5\"/> <path d=\"M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3\"/>","folder":"<path d=\"M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2\"/>","plus":"<path d=\"M12 5l0 14\"/> <path d=\"M5 12l14 0\"/>","back":"<path d=\"M15 6l-6 6l6 6\"/>","next":"<path d=\"M9 6l6 6l-6 6\"/>","menu":"<path d=\"M4 6l16 0\"/> <path d=\"M4 12l16 0\"/> <path d=\"M4 18l16 0\"/>","x":"<path d=\"M18 6l-12 12\"/> <path d=\"M6 6l12 12\"/>","rotl":"<path d=\"M15 4.55a8 8 0 0 0 -6 14.9m0 -4.45v5h-5\"/> <path d=\"M18.37 7.16l0 .01\"/> <path d=\"M13 19.94l0 .01\"/> <path d=\"M16.84 18.37l0 .01\"/> <path d=\"M19.37 15.1l0 .01\"/> <path d=\"M19.94 11l0 .01\"/>","rotr":"<path d=\"M9 4.55a8 8 0 0 1 6 14.9m0 -4.45v5h5\"/> <path d=\"M5.63 7.16l0 .01\"/> <path d=\"M4.06 11l0 .01\"/> <path d=\"M4.63 15.1l0 .01\"/> <path d=\"M7.16 18.37l0 .01\"/> <path d=\"M11 19.94l0 .01\"/>","magnet":"<path d=\"M4 13v-8a2 2 0 0 1 2 -2h1a2 2 0 0 1 2 2v8a2 2 0 0 0 6 0v-8a2 2 0 0 1 2 -2h1a2 2 0 0 1 2 2v8a8 8 0 0 1 -16 0\"/> <path d=\"M4 8l5 0\"/> <path d=\"M15 8l4 0\"/>","mark":"<path d=\"M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0\"/> <path d=\"M12 3l0 4\"/> <path d=\"M12 21l0 -3\"/> <path d=\"M3 12l4 0\"/> <path d=\"M21 12l-3 0\"/> <path d=\"M12 12l0 .01\"/>","search":"<path d=\"M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0\"/> <path d=\"M21 21l-6 -6\"/>","sparkles":"<path d=\"M16 18a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2m0 -12a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2m-7 12a6 6 0 0 1 6 -6a6 6 0 0 1 -6 -6a6 6 0 0 1 -6 6a6 6 0 0 1 6 6\"/>","pencil":"<path d=\"M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4\"/> <path d=\"M13.5 6.5l4 4\"/>","check":"<path d=\"M5 12l5 5l10 -10\"/>","zip":"<path d=\"M6 20.735a2 2 0 0 1 -1 -1.735v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2h-1\"/> <path d=\"M11 17a2 2 0 0 1 2 2v2a1 1 0 0 1 -1 1h-2a1 1 0 0 1 -1 -1v-2a2 2 0 0 1 2 -2\"/> <path d=\"M11 5l-1 0\"/> <path d=\"M13 7l-1 0\"/> <path d=\"M11 9l-1 0\"/> <path d=\"M13 11l-1 0\"/> <path d=\"M11 13l-1 0\"/> <path d=\"M13 15l-1 0\"/>","ok":"<path d=\"M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0\"/> <path d=\"M9 12l2 2l4 -4\"/>","money":"<path d=\"M16.7 8a3 3 0 0 0 -2.7 -2h-4a3 3 0 0 0 0 6h4a3 3 0 0 1 0 6h-4a3 3 0 0 1 -2.7 -2\"/> <path d=\"M12 3v3m0 12v3\"/>","sign":"<path d=\"M3 17c3.333 -3.333 5 -6 5 -8c0 -3 -1 -3 -2 -3s-2.032 1.085 -2 3c.034 2.048 1.658 4.877 2.5 6c1.5 2 2.5 2.5 3.5 1l2 -3c.333 2.667 1.333 4 3 4c.53 0 2.639 -2 3 -2c.517 0 1.517 .667 3 2\"/>","palette":"<path d=\"M12 21a9 9 0 0 1 0 -18c4.97 0 9 3.582 9 8c0 1.06 -.474 2.078 -1.318 2.828c-.844 .75 -1.989 1.172 -3.182 1.172h-2.5a2 2 0 0 0 -1 3.75a1.3 1.3 0 0 1 -1 2.25\"/> <path d=\"M7.5 10.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0\"/> <path d=\"M11.5 7.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0\"/> <path d=\"M15.5 10.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0\"/>","lang":"<path d=\"M9 6.371c0 4.418 -2.239 6.629 -5 6.629\"/> <path d=\"M4 6.371h7\"/> <path d=\"M5 9c0 2.144 2.252 3.908 6 4\"/> <path d=\"M12 20l4 -9l4 9\"/> <path d=\"M19.1 18h-6.2\"/> <path d=\"M6.694 3l.793 .582\"/>","save":"<path d=\"M6 4h10l4 4v10a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2\"/> <path d=\"M10 14a2 2 0 1 0 4 0a2 2 0 1 0 -4 0\"/> <path d=\"M14 4l0 4l-6 0l0 -4\"/>","lock":"<path d=\"M5 13a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-6\"/> <path d=\"M11 16a1 1 0 1 0 2 0a1 1 0 0 0 -2 0\"/> <path d=\"M8 11v-4a4 4 0 1 1 8 0v4\"/>","download":"<path d=\"M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2\"/> <path d=\"M7 11l5 5l5 -5\"/> <path d=\"M12 4l0 12\"/>","info":"<path d=\"M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0\"/> <path d=\"M12 9h.01\"/> <path d=\"M11 12h1v4h1\"/>","bank":"<path d=\"M3 21l18 0\"/> <path d=\"M3 10l18 0\"/> <path d=\"M5 6l7 -3l7 3\"/> <path d=\"M4 10l0 11\"/> <path d=\"M20 10l0 11\"/> <path d=\"M8 14l0 3\"/> <path d=\"M12 14l0 3\"/> <path d=\"M16 14l0 3\"/>"};
+const icSvg=(n,c='')=>`<svg class="ic${c?' '+c:''}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n]||ICONS.tag}</svg>`;
 const EMOJI2ICON={'🚆':'train','🚄':'train','🚌':'bus','🚕':'car','🚗':'car','🚲':'bike','✈':'plane','🚢':'ship','🅿':'parking','⛽':'fuel','🍽':'food','☕':'coffee','🍺':'beer','🍕':'pizza','🥐':'bread','🛒':'cart','🏨':'bed','🛏':'bed','📱':'phone','💻':'laptop','🌐':'world','📞':'call','🎫':'ticket','🎟':'ticket','🏛':'museum','🧳':'luggage','💼':'briefcase','📦':'package','🧾':'receipt','💳':'card','🏷':'tag','🛠':'tools','💊':'pill','🎁':'gift','🧴':'bottle','📚':'books','🖨':'printer','📮':'mail','🧹':'broom','⚽':'sport','🎭':'theater','🏥':'health','🧰':'tools','🔧':'tool','🌍':'world','💡':'bulb','📎':'clip'};
+
+const ICON2EMOJI={train:'🚆',bus:'🚌',car:'🚗',bike:'🚲',plane:'✈️',ship:'🚢',parking:'🅿️',fuel:'⛽',food:'🍽️',coffee:'☕',beer:'🍺',pizza:'🍕',bread:'🥐',cart:'🛒',bed:'🛏️',building:'🏢',phone:'📱',laptop:'💻',wifi:'📶',call:'📞',world:'🌍',ticket:'🎫',museum:'🏛️',luggage:'🧳',briefcase:'💼',package:'📦',receipt:'🧾',card:'💳',tag:'🏷️',tool:'🔧',tools:'🛠️',pill:'💊',gift:'🎁',books:'📚',printer:'🖨️',mail:'📮',broom:'🧹',bottle:'🧴',sport:'⚽',theater:'🎭',health:'🏥',bulb:'💡',clip:'📎',pin:'📍',home:'🏠',chart:'📊',doc:'📄',settings:'⚙️',history:'🕘',camera:'📷',photo:'🖼️',folder:'📁',plus:'➕',back:'◀️',next:'▶️',menu:'☰',x:'✖️',rotl:'↺',rotr:'↻',magnet:'🧲',mark:'🔲',search:'🔍',sparkles:'✨',pencil:'✏️',check:'✔️',zip:'🗜️',ok:'✅',money:'💶',sign:'✍️',palette:'🎨',lang:'🔤',save:'💾',lock:'🔒',download:'⬇️',info:'ℹ️',bank:'🏦',refresh:'🔄'};
+let ICON_STYLE='icons';
+const emoSvg=(g,c='')=>`<svg class="ic emo${c?' '+c:''}" viewBox="0 0 24 24" aria-hidden="true"><text x="12" y="12.6" text-anchor="middle" dominant-baseline="central" font-size="19">${String(g).replace(/[<&]/g,'')}</text></svg>`;
+const ic=(n,c='')=>ICON_STYLE==='emoji'?emoSvg(ICON2EMOJI[n]||ICON2EMOJI.tag,c):icSvg(n,c);
+const syncIconStyle=()=>{ICON_STYLE=S.iconStyle==='emoji'?'emoji':'icons'};
 const fixIcon=i=>{if(ICONS[i])return i;return EMOJI2ICON[String(i||'').replace(/️/g,'')]||'tag'};
 const ICON_PICK=['train','bus','car','bike','plane','ship','parking','fuel','food','coffee','beer','pizza','bread','cart','bed','building','phone','laptop','wifi','call','world','ticket','museum','luggage','briefcase','package','receipt','card','tag','tool','tools','pill','gift','books','printer','mail','broom','bottle','sport','theater','health','bulb','clip','pin'];
 /* ---------- helpers ---------- */
@@ -655,15 +671,16 @@ const DEF_CATS=[['Train tickets','train'],['Restaurant/Food','food'],['Hotel','b
 const DEFAULTS={firstName:'',lastName:'',address:'',city:'',bank:'',bankAddress:'',bic:'',iban:'',account:'',costcenter:'',project:'',vat:'',voucherNo:'',
  home:'CHF',fee:0,currencies:['CHF','EUR','USD','GBP','SEK','JPY','AUD'],
  categories:DEF_CATS,payments:['CARD','CASH'],signature:'',stamp:true,theme:'teal',mode:'system',
- ocrAuto:true,ocrLangs:['eng','deu','fra','ita'],packSrc:'fast',packUrl:'',pdfLayout:'2x2',autoCrop:true,snap:true};
+ ocrAuto:true,ocrLangs:['eng','deu','fra','ita'],packSrc:'fast',packUrl:'',pdfLayout:'2x2',autoCrop:true,snap:true,iconStyle:'icons'};
 let S={...DEFAULTS},trips=[],trip=null,exps=[],view='home',urls=[];
 const catIcon=n=>{const c=S.categories.find(c=>c.name.toLowerCase()===String(n).toLowerCase());return c?fixIcon(c.icon):'tag'};
 const migrateCats=cs=>(cs||[]).map(c=>typeof c==='string'?{name:c,icon:(DEF_CATS.find(d=>d.name.toLowerCase()===c.toLowerCase())||{icon:'tag'}).icon}:(c&&{...c,icon:fixIcon(c.icon)})).filter(c=>c&&c.name);
-const catTile=n=>`<span class="ctile">${ic(catIcon(n))}</span>`;
+const catIc=n=>{const c=S.categories.find(c=>c.name.toLowerCase()===String(n).toLowerCase());return ICON_STYLE==='emoji'&&c&&c.emoji?emoSvg(c.emoji):ic(catIcon(n))};
+const catTile=n=>`<span class="ctile">${catIc(n)}</span>`;
 
 async function loadAll(){
   S={...DEFAULTS,...(await DB.get('kv','settings')||{})};
-  S.categories=migrateCats(S.categories);if(!S.categories.length)S.categories=DEF_CATS.map(c=>({...c}));
+  syncIconStyle();S.categories=migrateCats(S.categories);if(!S.categories.length)S.categories=DEF_CATS.map(c=>({...c}));
   trips=await DB.all('trips');
   const cur=await DB.get('kv','currentTrip');
   trip=trips.find(t=>t.id===cur)||null;
@@ -821,8 +838,10 @@ function tripDetails(t,isNew){
    ${isNew?'':`<label class="f">Status<select id="ts">${STATUS.map(([k,n])=>`<option value="${k}" ${tripStatus(t)===k?'selected':''}>${n}</option>`).join('')}</select></label>`}
    <button class="btn primary block" id="tsv">Save</button><div style="height:10px"></div><button class="btn block" id="tcn">Cancel</button>`);
   s.dataset.lock='1';
+  let dirt=false;s.addEventListener('input',e=>{if(e.isTrusted)dirt=true});s.addEventListener('change',e=>{if(e.isTrusted)dirt=true});
+  s.isDirty=()=>dirt;s.onDismiss=()=>res(false);
   const q=x=>s.querySelector(x);
-  q('#tcn').onclick=()=>{s.close();res(false)};
+  q('#tcn').onclick=()=>s.askClose();
   if(isNew)setTimeout(()=>q('#tn').focus(),60);
   q('#tsv').onclick=async()=>{
     const nm=q('#tn').value.trim(),f=q('#tf').value,to=q('#tt').value;
@@ -884,7 +903,8 @@ function bindStats(){
 let sub=null;
 const ICON_SVG=(document.querySelector('.sp-icon')||{}).innerHTML||'';
 let _ic=0;const iconSvg=()=>{const n=++_ic;return ICON_SVG.replace('id="g"',`id="g${n}"`).replace('url(#g)',`url(#g${n})`)};
-const appbar=()=>`<div class="appbar"><div class="ab-icon">${iconSvg()}</div><div class="ab-title"><b>Receipt Archive</b><span>v${APP_VERSION}</span></div><button class="burger" id="burger" aria-label="Menu">${ic('menu')}</button></div>`;
+let upd=null;
+const appbar=()=>`<div class="appbar"><div class="ab-icon">${iconSvg()}</div><div class="ab-title"><b>Receipt Archive</b><span>v${APP_VERSION}${upd?` → <span class="new">v${esc(upd.version)}</span>`:''}</span></div>${upd?`<button class="upd-btn" id="updBtn" aria-label="Update available">${ic('refresh')}</button>`:''}<button class="burger" id="burger" aria-label="Menu">${ic('menu')}</button></div>`;
 let tripStats={};
 async function loadStats(){
   const all=await DB.all('expenses');tripStats={};
@@ -901,6 +921,7 @@ async function render(){
   const body=view==='home'?homeView():view==='trips'?tripsView():view==='trip'?tripView():view==='stats'?statsView():settingsView();
   $('#app').innerHTML=appbar()+'<div class="page">'+body+'</div>';
   $('#burger').onclick=openDrawer;
+  const ub=$('#updBtn');if(ub)ub.onclick=openUpdate;
   ({home:bindHome,trips:bindTrips,trip:bindTrip,settings:bindSettings,stats:bindStats})[view]();
 }
 function nav(v,s=null){history.pushState({v,s},'');view=v;sub=s;render();scrollTo(0,0)}
@@ -996,10 +1017,17 @@ function bindTrip(){
 }
 
 /* ---------- sheets ---------- */
-function openSheet(html){
-  const bg=document.createElement('div');bg.className='sheet-bg';bg.innerHTML=`<div class="sheet">${html}</div>`;
-  document.body.append(bg);bg.addEventListener('mousedown',e=>{if(e.target===bg&&!bg.dataset.lock)close()});
-  const close=()=>bg.remove();bg.close=close;return bg;
+function openSheet(html,o={}){
+  const bg=document.createElement('div');bg.className='sheet-bg';
+  bg.innerHTML=`<div class="sheet">${o.x===false?'':`<button class="sx" aria-label="Close" type="button">${ic('x')}</button>`}${html}</div>`;
+  document.body.append(bg);
+  const close=()=>bg.remove();bg.close=close;
+  bg.askClose=async()=>{
+    if(bg.isDirty&&bg.isDirty()&&!await dlg({text:'Discard your changes?',ok:'Discard',cancel:'Keep editing',danger:true}))return;
+    bg.close();if(bg.onDismiss)bg.onDismiss()};
+  const sx=bg.querySelector('.sx');if(sx)sx.onclick=()=>bg.askClose();
+  bg.addEventListener('mousedown',e=>{if(e.target===bg&&!bg.dataset.lock)bg.close()});
+  return bg;
 }
 function openAddChoice(){
   const s=openSheet(`<h3>Add receipt</h3><button class="btn primary block" id="a1">${ic('camera')}Take photo</button><div style="height:10px"></div>
@@ -1345,18 +1373,19 @@ async function openExpense(exp,newImages){
    <div class="row"><label class="f">Rate (1 <span class="c">${esc(f.cur)}</span> = ? ${esc(S.home)})<input id="fr" inputmode="decimal" value="${f.rate?rateStr(f.rate):''}"></label>
    <label class="f">Total ${esc(S.home)}<input id="ft" inputmode="decimal" value="${f.chf?f.chf.toFixed(2):''}"></label></div>
    <div class="hint" id="fi"></div>
+   <details class="more" ${f.kind||f.ownPage?'open':''}><summary>More options (claim split, payment, own page)</summary>
    <label class="f">Claim<select id="fk"><option value="">Claim the full amount</option><option value="colleague">Paid for a colleague (not claimed)</option><option value="personal">Personal (not claimed)</option><option value="partial">Partial (claim only a part)</option></select></label>
    <div id="exw" style="display:none"><div class="seg" id="exm" style="margin-bottom:10px"><button type="button" data-m="amount">Amount</button><button type="button" data-m="percent">Percent</button></div>
    <label class="f"><span id="exl">Not claimed</span><input id="fx" inputmode="decimal" placeholder="0.00"></label><div class="hint" id="exh"></div></div>
    <label class="f">Payment method<select id="fp">${opt(S.payments,f.payment)}</select></label>
-   <label class="sub" style="display:flex;gap:10px;align-items:center;margin:0 2px 14px"><input type="checkbox" id="fop" style="width:22px;height:22px"> Print on its own page in the PDF</label>
-   <button class="btn primary block" id="sv">Save</button>
-   ${isNew?'':'<div style="height:10px"></div><button class="btn danger block" id="dl">Delete receipt</button>'}
-   <div style="height:10px"></div><button class="btn block" id="cn">Cancel</button>`);
+   <label class="sub" style="display:flex;gap:10px;align-items:center;margin:0 2px 14px"><input type="checkbox" id="fop" style="width:22px;height:22px"> Print on its own page in the PDF</label></details>
+   <div class="sbar">${isNew?'':'<button class="btn danger" id="dl">Delete</button>'}<button class="btn primary" id="sv">Save</button></div>`);
   s.dataset.lock='1';
+  let dirt=false,drawn=false;s.addEventListener('input',e=>{if(e.isTrusted)dirt=true});s.addEventListener('change',e=>{if(e.isTrusted)dirt=true});
+  s.isDirty=()=>dirt||(isNew&&f.images.length>0);
   const q=x=>s.querySelector(x);
   const touched=new Set();
-  const drawPhotos=()=>{const ph=q('#ph');ph.innerHTML=f.images.length?'':'<div class="sub">No photo attached</div>';
+  const drawPhotos=()=>{if(drawn)dirt=true;drawn=true;const ph=q('#ph');ph.innerHTML=f.images.length?'':'<div class="sub">No photo attached</div>';
     f.images.forEach((b,i)=>{const d=document.createElement('div');d.className='p';d.innerHTML=`<img src="${url(b)}" alt=""><button class="x" aria-label="Remove">${ic('x')}</button>`;
       d.querySelector('.x').onclick=()=>{f.images.splice(i,1);drawPhotos()};d.querySelector('img').onclick=async()=>{const ed=await editPhoto(f.images[i]);if(ed){f.images[i]=ed;drawPhotos();if(i===0||ed.totalImg)autoRead()}};ph.append(d)})};
   drawPhotos();
@@ -1402,7 +1431,6 @@ async function openExpense(exp,newImages){
   q('#fc').onchange=()=>{q('#cuw').style.display=q('#fc').value==='__other__'?'':'none';if(q('#fc').value==='__other__')q('#cu').focus()};
   ['fd','fc','fcur','fa'].forEach(id=>q('#'+id).addEventListener('change',()=>{touched.add(id);q('#'+id).classList.remove('autof')}));
   q('#fa').addEventListener('input',()=>{touched.add('fa');q('#fa').classList.remove('autof')});
-  q('#cn').onclick=()=>s.close();
 
   /* offline OCR: only fills fields the user has not touched */
   let reading=0;
@@ -1727,13 +1755,14 @@ function pageBody(id){
     <label class="f">Home currency (report total)<input data-k="home" value="${esc(S.home)}" autocapitalize="characters" maxlength="3"></label>
     <label class="f">Bank / card fee on foreign currency (%)<input data-k="fee" inputmode="decimal" value="${S.fee}"></label>
     <label class="f">Currencies offered (comma separated)<input data-list="currencies" value="${esc(S.currencies.join(', '))}"></label></div>`;
-  if(id==='lists')return `<div class="card"><div class="sub" style="margin-bottom:10px">Tap the icon to change it. The PDF shows the name only.</div><div id="cats">${S.categories.map((c,i)=>`<div class="catrow"><button class="em" data-ei="${i}" aria-label="Change icon">${ic(c.icon)}</button><input class="nm" data-ci="${i}" value="${esc(c.name)}" aria-label="Category name"><button class="btn small danger" data-cd="${i}" aria-label="Delete">${ic('x')}</button></div>`).join('')}</div>
+  if(id==='lists')return `<div class="card"><div class="sub" style="margin-bottom:10px">Tap the icon to change it. The PDF shows the name only.</div><div id="cats">${S.categories.map((c,i)=>`<div class="catrow"><button class="em" data-ei="${i}" aria-label="Change icon">${ICON_STYLE==='emoji'&&c.emoji?emoSvg(c.emoji):ic(c.icon)}</button><input class="nm" data-ci="${i}" value="${esc(c.name)}" aria-label="Category name"><button class="btn small danger" data-cd="${i}" aria-label="Delete">${ic('x')}</button></div>`).join('')}</div>
     <button class="btn small block" id="catAdd">${ic('plus')}Add category</button></div>
     <div class="card"><label class="f" style="margin:0">Payment methods (comma separated)<input data-list="payments" value="${esc(S.payments.join(', '))}"></label></div>`;
   if(id==='signature')return `<div class="card"><canvas id="sig"></canvas><div class="row" style="margin-top:10px"><button class="btn small" id="sigClr">Clear</button>
     <label class="sub" style="flex:2"><input type="checkbox" id="stamp" ${S.stamp?'checked':''}> Stamp on “Employee visa”</label></div></div>`;
   if(id==='appearance')return `<div class="card"><div class="sub" style="margin-bottom:10px">Color theme</div><div class="swatches">${Object.entries(THEMES).map(([k,t])=>
       `<button class="sw ${S.theme===k?'on':''}" data-theme="${k}"><i style="background:hsl(${t.h},${t.s}%,${t.l+8}%)"></i><span>${t.n}</span></button>`).join('')}</div></div>
+    <div class="card"><div class="sub" style="margin-bottom:10px">Icon style</div><div class="seg">${[['icons','Icons'],['emoji','Emoji']].map(([k,n])=>`<button data-ist="${k}" class="${S.iconStyle===k?'on':''}">${n}</button>`).join('')}</div><div class="hint" style="margin:8px 0 0">Switches every icon in the app. Emoji look different on each phone.</div></div>
     <div class="card"><div class="sub" style="margin-bottom:10px">Mode</div><div class="seg">${[['system','Auto'],['light','Light'],['dark','Dark']].map(([k,n])=>`<button data-mode="${k}" class="${S.mode===k?'on':''}">${n}</button>`).join('')}</div></div>
     <div class="sub">The phone’s bottom bar follows the theme when the app is installed. After updating from an older version, remove the app and install it again once.</div>`;
   if(id==='photos')return `<div class="card"><label class="sub" style="display:flex;gap:10px;align-items:center"><input type="checkbox" id="optAuto" ${S.autoCrop!==false?'checked':''} style="width:22px;height:22px"> Frame the page automatically after taking a photo</label>
@@ -1849,14 +1878,19 @@ function bindLangs(){
   $('#packUrl').oninput=e=>{S.packUrl=e.target.value.trim();saveSettings()};
 }
 const EMOJI_PICK=cur=>new Promise(res=>{
-  const sh=openSheet(`<h3>Choose icon</h3><div class="emgrid">${ICON_PICK.map(e=>`<button data-e="${e}" aria-label="${e}">${ic(e)}</button>`).join('')}</div><button class="btn block" id="emX">Cancel</button>`);
-  sh.dataset.lock='1';
-  sh.querySelectorAll('[data-e]').forEach(b=>b.onclick=()=>{sh.close();res(b.dataset.e)});
+  const em=ICON_STYLE==='emoji';
+  const sh=openSheet(`<h3>Choose ${em?'emoji':'icon'}</h3><div class="emgrid">${ICON_PICK.map(e=>`<button data-e="${e}" aria-label="${e}">${ic(e)}</button>`).join('')}</div>${em?'<div class="emcustom"><input id="emIn" placeholder="or type your own emoji" aria-label="Own emoji"><button class="btn primary" id="emOk">Use</button></div>':''}<button class="btn block" id="emX">Cancel</button>`);
+  sh.dataset.lock='1';sh.onDismiss=()=>res(null);
+  sh.querySelectorAll('[data-e]').forEach(b=>b.onclick=()=>{sh.close();res({icon:b.dataset.e,emoji:''})});
   sh.querySelector('#emX').onclick=()=>{sh.close();res(null)};
+  const ok=sh.querySelector('#emOk');if(ok)ok.onclick=()=>{
+    const v=sh.querySelector('#emIn').value.trim();if(!v)return;
+    let g=v;try{g=[...new Intl.Segmenter(undefined,{granularity:'grapheme'}).segment(v)][0].segment}catch(e){g=Array.from(v)[0]}
+    sh.close();res({icon:fixIcon(g),emoji:g,custom:true})};
 });
 function bindCats(){
   const save=()=>saveSettings();
-  document.querySelectorAll('[data-ei]').forEach(b=>b.onclick=async()=>{const e=await EMOJI_PICK();if(e){S.categories[+b.dataset.ei].icon=e;save();render()}});
+  document.querySelectorAll('[data-ei]').forEach(b=>b.onclick=async()=>{const e=await EMOJI_PICK();if(e){const c=S.categories[+b.dataset.ei];if(ICON_STYLE==='emoji'){c.icon=e.custom&&!ICONS[e.icon]?c.icon:e.icon;if(e.emoji)c.emoji=e.emoji;else delete c.emoji}else c.icon=e.icon;save();render()}});
   document.querySelectorAll('[data-ci]').forEach(i=>{
     i.onchange=async()=>{const c=S.categories[+i.dataset.ci],nn=i.value.trim(),old=c.name;
       if(!nn||nn===old){i.value=old;return}
@@ -1891,6 +1925,7 @@ function bindSettings(){
   if(sub==='appearance'){
     app.querySelectorAll('[data-theme]').forEach(b=>b.onclick=()=>{S.theme=b.dataset.theme;saveSettings();applyTheme();render()});
     app.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{S.mode=b.dataset.mode;saveSettings();applyTheme();render()});
+    app.querySelectorAll('[data-ist]').forEach(b=>b.onclick=()=>{S.iconStyle=b.dataset.ist;syncIconStyle();saveSettings();render()});
   }
 }
 
@@ -1967,7 +2002,7 @@ async function saveBackup(){
   const pw=pw1;
   if(pw){const pw2=await dlg({text:'Type the password again. If you forget it, the backup cannot be opened.',input:true,type:'password',ok:'Confirm'});
     if(pw2===null)return;if(pw2!==pw){await tell('The passwords do not match. No backup was created.');return}}
-  const bg=openSheet('<h3>Creating backup…</h3><div class="sub">Please wait</div>');bg.dataset.lock='1';
+  const bg=openSheet('<h3>Creating backup…</h3><div class="sub">Please wait</div>',{x:false});bg.dataset.lock='1';
   try{
     await new Promise(r=>setTimeout(r,30));
     const {strToU8}=fflate;const files={};
@@ -2005,7 +2040,7 @@ async function loadBackup(file){
   let warn='';if(nv[0]>cv[0]||(nv[0]===cv[0]&&nv[1]>cv[1]))warn=`\n\nThe backup comes from a newer version (${data.version}). Update the app first if something looks wrong.`;
   const r=await dlg({text:`Backup from ${String(data.created||'').slice(0,10)} (version ${data.version}): ${data.trips.length} trip${data.trips.length===1?'':'s'}, ${data.expenses.length} receipt${data.expenses.length===1?'':'s'}.\n\nReplace: erases everything on this phone and uses the backup.\nMerge: adds the backup’s trips and receipts, keeps your current settings.${warn}`,ok:'Replace',extra:'Merge',danger:true});
   if(!r)return;
-  const bg=openSheet('<h3>Restoring…</h3><div class="sub">Please wait</div>');bg.dataset.lock='1';
+  const bg=openSheet('<h3>Restoring…</h3><div class="sub">Please wait</div>',{x:false});bg.dataset.lock='1';
   try{
     const imgs=e=>(e.images||[]).map(n=>data._z[n]).filter(Boolean).map(u=>new Blob([u],{type:'image/jpeg'}));
     const map={};
@@ -2042,44 +2077,74 @@ function cell(doc,x,y,w,h,txt,o={}){
   const y0=y+h/2-(lines.length-1)*lh/2+(o.size||7.5)*0.3528*0.33;
   lines.forEach((l,i)=>doc.text(doc.splitTextToSize(l,w-2.4)[0]||'',tx,y0+i*lh,{align:al}));
 }
-function drawReport(doc,rows,startNo,last,total,dateStr){
-  const home=S.home;
-  doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(0);doc.text('Expenses report',12,13);
-  let y=19;const rh=4.8;
-  [['First Name',S.firstName],['Last Name',S.lastName],['Address',S.address],['City',S.city],['Bank',S.bank],['Bank Address  *',S.bankAddress],['BIC / SWIFT  *',S.bic],['IBAN / Acct.  *',S.iban]]
-   .forEach(([l,v])=>{cell(doc,12,y,30,rh,l,{bold:true,border:false,size:7});cell(doc,42,y,62,rh,v,{fill:PEACH,align:'center'});y+=rh});
-  cell(doc,12,y+2,92,9,'',{fill:[255,255,0]});
-  doc.setFont('helvetica','bold');doc.setFontSize(7);
-  doc.text("*      please indicate bank's complete address, account,",58,y+5.2,{align:'center'});
-  doc.text('BIC / SWIFT and IBAN No.!',58,y+8.4,{align:'center'});
-  // right block
-  cell(doc,110,19,14,rh,'Date',{bold:true,size:7});cell(doc,124,19,51,rh,dateStr,{bold:false,align:'center'});
-  cell(doc,175,19,24,rh,'Voucher-No.',{bold:true,size:7});cell(doc,199,19,86,rh,S.voucherNo,{align:'center'});
-  const hx=[110,137,160,180,203,240,285],hn=['Account','Costcenter','Project','Currency','Amount','VAT'],hv=[S.account,S.costcenter,S.project,home,'',S.vat];
-  hn.forEach((n,i)=>{cell(doc,hx[i],23.8,hx[i+1]-hx[i],rh,n,{bold:true,size:7});cell(doc,hx[i],28.6,hx[i+1]-hx[i],rh,hv[i],{fill:PEACH,align:'center'})});
-  // table
-  const W=[16,26,125,26,26,26,28];const X=[12];W.forEach(w=>X.push(X[X.length-1]+w));
-  const ty=71;const H=['Voucher\nno.','Date','Description','Voucher\ncurrency','Amount','Exchange\nrate','Total '+home];
-  H.forEach((h,i)=>cell(doc,X[i],ty,W[i],8,h,{bold:true,size:7,align:'center'}));
-  for(let i=0;i<20;i++){const r=rows[i],yy=ty+8+i*rh;
-    cell(doc,X[0],yy,W[0],rh,startNo+i,{align:'center'});
-    cell(doc,X[1],yy,W[1],rh,r?dmy(r.date):'',{align:'center'});
-    cell(doc,X[2],yy,W[2],rh,r?(r.category+(r.note?' - '+r.note:'')):'');
-    cell(doc,X[3],yy,W[3],rh,r?r.cur:'');
-    cell(doc,X[4],yy,W[4],rh,r?String(claimOrig(r)):'',{align:'right'});
-    cell(doc,X[5],yy,W[5],rh,r?rateStr(r.rate):'',{align:'right'});
-    cell(doc,X[6],yy,W[6],rh,r?fmt2(claimHome(r)).replace(/’/g,''):'-',{align:'right'});
+/* report page: same grid as the company template Expenses_Report.xlsx (columns A..Q) */
+const RP_CW=[6.285,4.426,5.0,11.571,9.141,6.141,10.711,10.711,3.571,12.0,11.141,10.711,12.285,15.426,10.141,8.141,8.571].map(w=>Math.round(w*7+5));
+const RP_X=[0];RP_CW.forEach(w=>RP_X.push(RP_X[RP_X.length-1]+w));
+const RP_K=0.2166,RP_OX=(297-RP_X[17]*RP_K)/2,RP_OY=7.4;
+const acc=n=>(Math.round((Number(n)||0)*100)/100).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+/* one cell over columns a..b (1-based), at row position y (height h), in template units */
+function rc(doc,a,b,y,h,txt,o={}){
+  const x=RP_OX+RP_X[a-1]*RP_K,w=(RP_X[b]-RP_X[a-1])*RP_K,yy=RP_OY+y*RP_K,hh=h*RP_K;
+  if(o.fill){doc.setFillColor(...o.fill);doc.rect(x,yy,w,hh,'F')}
+  doc.setDrawColor(0);doc.setLineWidth(.18);
+  if(o.box)doc.rect(x,yy,w,hh);
+  if(o.under)doc.line(x,yy+hh,x+w,yy+hh);
+  if(txt===''||txt==null)return;
+  const sz=o.size||8,lh=sz*0.3528*1.18,pad=.65;
+  doc.setFont('helvetica',(o.bold?'bold':'')+(o.italic?'italic':'')||'normal');doc.setFontSize(sz);doc.setTextColor(o.gray?90:0);
+  const lines=String(txt).split('\n'),al=o.align||'left';
+  const tx=al==='center'?x+w/2:al==='right'?x+w-pad:x+pad;
+  const base=o.bottom?yy+hh-1.1-(lines.length-1)*lh:yy+hh/2-(lines.length-1)*lh/2+sz*0.3528*0.33;
+  lines.forEach((l,i)=>doc.text(doc.splitTextToSize(l,w-2*pad)[0]||'',tx,base+i*lh,{align:al}));
+  doc.setTextColor(0);
+}
+function drawReport(doc,o){
+  const home=S.home,pages=o.pages,multi=pages>1,first=o.pageNo===1,last=o.pageNo===pages,rows=o.rows;
+  const R=(a,b,y,h,t,x)=>rc(doc,a,b,y,h,t,x);
+  let ty;
+  if(first){
+    R(1,17,0,24,'Expenses report',{bold:true,size:9});
+    if(multi)R(13,17,0,24,`Page ${o.pageNo}/${o.N}`,{align:'right',size:8});
+    const L=[['First Name',S.firstName],['Last Name',S.lastName],['Address',S.address],['City',S.city],['Bank',S.bank],['Bank Address  *',S.bankAddress],['BIC / SWIFT   *',S.bic],['IBAN / Acct.   *',S.iban]];
+    L.forEach(([l,v],i)=>{const y=38+24*i;R(1,3,y,24,l,{bold:true});R(4,8,y,24,v,{fill:PEACH,box:true,align:'center'})});
+    R(1,8,254,48,'',{fill:[255,255,0],box:true});
+    R(1,8,254,24,"*        please indicate bank's complete address, account,",{bold:true,align:'center',size:8,bottom:true});
+    R(1,8,278,24,'BIC / SWIFT and IBAN No.!',{bold:true,align:'center',size:8});
+    R(10,13,38,24,'Date',{bold:true,box:true});R(14,16,38,24,'Voucher-No.',{bold:true,box:true});
+    R(10,13,62,24,o.dateStr,{box:true});R(14,16,62,24,S.voucherNo||'',{box:true});
+    [[10,10,'Account'],[11,11,'Costcenter'],[12,12,'Project'],[13,13,'Currency'],[14,15,'Amount'],[16,16,'VAT']].forEach(([a,b,t])=>R(a,b,86,24,t,{bold:true,box:true}));
+    for(let j=0;j<8;j++){const y=110+24*j;
+      R(10,10,y,24,j?'':(S.account||''),{fill:PEACH,box:true,align:'right'});R(11,11,y,24,j?'':(S.costcenter||''),{fill:PEACH,box:true,align:'right'});R(12,12,y,24,j?'':(S.project||''),{fill:PEACH,box:true,align:'right'});
+      R(13,13,y,24,j?'':home,{box:true});R(14,15,y,24,'',{box:true});R(16,16,y,24,j?'':(S.vat||''),{box:true,align:'right'})}
+    ty=326;
+  }else{
+    R(1,17,0,24,'Expenses report',{bold:true,size:9});
+    R(13,17,0,24,`Page ${o.pageNo}/${o.N}`,{align:'right',size:8});
+    R(1,17,24,24,`${S.firstName||''} ${S.lastName||''}  ·  ${trip.name}`.trim(),{bold:true});
+    R(1,17,48,24,[['Costcenter',S.costcenter],['Account',S.account],['Project',S.project],['Voucher-No.',S.voucherNo]].filter(x=>x[1]).map(x=>x[0]+' '+x[1]).join('     ·     '));
+    ty=96;
   }
-  const by=ty+8+20*rh+1.2;
-  if(last){cell(doc,X[4]-12,by,W[4]+12,5.4,'Total',{bold:true,align:'right',border:false});
-    cell(doc,X[5],by,W[5],5.4,home,{align:'center',border:false});
-    cell(doc,X[6],by,W[6],5.4,fmt2(total).replace(/’/g,''),{bold:true,align:'right',fill:PEACH})}
-  const sy=by+17;
-  doc.setFont('helvetica','bold');doc.setFontSize(7.5);
-  doc.text('Date:',12,sy);doc.text('Employee visa:',72,sy);doc.text('Superiors visa:',160,sy);
-  doc.setDrawColor(0);doc.setLineWidth(.2);doc.line(22,sy+.8,60,sy+.8);doc.line(92,sy+.8,150,sy+.8);doc.line(184,sy+.8,250,sy+.8);
-  doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(90);doc.text(dateStr,41,sy-.5,{align:'center'});doc.setTextColor(0);
-  if(last&&S.stamp&&S.signature){try{doc.addImage(S.signature,'PNG',94,sy-13,46,16.5)}catch(e){}}
+  [[1,2,'Voucher\nno.'],[3,4,'Date'],[5,12,'Description'],[13,13,'Voucher\ncurrency'],[14,14,'Amount'],[15,15,'Exchange\nrate'],[16,16,'Total'],[17,17,home]]
+    .forEach(([a,b,t])=>R(a,b,ty,36,t,{bold:true,align:'center',box:true}));
+  for(let i=0;i<20;i++){const r=rows[i],y=ty+36+24*i;
+    R(1,2,y,24,o.startNo+i,{box:true,align:'center'});
+    R(3,4,y,24,r?dmy(r.date):'',{box:true});
+    R(5,12,y,24,r?(r.category+(r.note?' - '+r.note:'')):'',{box:true});
+    R(13,13,y,24,r?r.cur:'',{box:true,align:'center'});
+    R(14,14,y,24,r?acc(claimOrig(r)):'',{box:true,align:'right'});
+    R(15,15,y,24,r?rateStr(r.rate):'',{box:true,align:'right'});
+    R(16,17,y,24,r?acc(claimHome(r)):'-',{box:true,align:'right'});
+  }
+  const fy=ty+36+480;
+  if(last){R(14,14,fy,24,'Total',{bold:true,under:true});R(15,15,fy,24,home,{under:true,align:'center'});R(16,17,fy,24,acc(o.total),{under:true,align:'right',bold:true})}
+  else{R(11,15,fy,24,'Carried forward to next page',{align:'right',italic:true});R(16,17,fy,24,acc(o.cum),{under:true,align:'right'})}
+  const sy=fy+24;
+  if(last){
+    R(1,1,sy,30,'Date:',{bold:true,bottom:true});R(2,4,sy,30,o.dateStr,{under:true,align:'center',bottom:true,gray:true});
+    R(5,6,sy,30,'Employee visa:',{bold:true,bottom:true});R(7,8,sy,30,'',{under:true});
+    R(9,10,sy,30,'Superiors visa:',{bold:true,bottom:true});R(11,12,sy,30,'',{under:true});
+    if(S.stamp&&S.signature){try{const x=RP_OX+RP_X[6]*RP_K,w=(RP_X[8]-RP_X[6])*RP_K,h=w/2.79,yb=RP_OY+(sy+30)*RP_K-.4;doc.addImage(S.signature,'PNG',x+1,yb-h,w-2,h)}catch(e){}}
+  }else R(1,13,sy,30,'Table continues on next page – signatures for approval on the last page',{italic:true,bottom:true,size:8});
 }
 async function imgDims(dataUrl){const i=await loadImg(dataUrl);return[i.naturalWidth,i.naturalHeight]}
 function captionLines(e,no,cont){
@@ -2090,7 +2155,16 @@ function captionLines(e,no,cont){
   L.push(`Payment method: ${e.payment}`,`Trip/Customer: ${trip.name}`);return L;
 }
 const safeName=s=>s.replace(/[^\w\-]+/g,'_');
-const reportBase=()=>{const first=exps.reduce((m,e)=>e.date<m?e.date:m,exps[0].date);return `${first.slice(0,4)}${first.slice(5,7)}-${safeName(trip.name)}-ExpenseReport`};
+let curBase=null;
+const cleanFile=n=>String(n||'').replace(/\.(pdf|zip)$/i,'').replace(/[\\/:*?"<>|\u0000-\u001f]+/g,'').replace(/\s+/g,' ').trim();
+function suggestBase(){
+  const first=exps.reduce((m,e)=>e.date<m?e.date:m,exps[0].date);
+  const d=(trip.from&&/^\d{4}-\d{2}/.test(trip.from))?trip.from:first,ym=d.slice(0,4)+d.slice(5,7);
+  let nm=cleanFile(trip.name),m=nm.match(/^(\d{6})[\s_\-]*(.*)$/);
+  if(m&&m[1]===ym)nm=m[2]||'';
+  return cleanFile(ym+(nm?'_'+nm.replace(/\s+/g,'_'):''));
+}
+const reportBase=()=>curBase||suggestBase();
 /* ---------- receipt page layouts ---------- */
 const PG_TOP=12,PG_H=275;   // usable area of an A4 portrait page: x 10..200, y 12..287
 function gridT(cols,rows){
@@ -2147,7 +2221,7 @@ async function makeDoc(prog,reportOnly){
   }
   window.__lastPlan=pages;
   const nRec=pages.length,N=nRep+nRec;
-  for(let p=0;p<nRep;p++){if(p)doc.addPage('a4','landscape');drawReport(doc,exps.slice(p*20,p*20+20),p*20+1,p===nRep-1,total,dateStr)}
+  let cum=0;for(let p=0;p<nRep;p++){if(p)doc.addPage('a4','landscape');const rows=exps.slice(p*20,p*20+20);cum=r2(cum+rows.reduce((a,e)=>a+claimHome(e),0));drawReport(doc,{rows,startNo:p*20+1,pageNo:p+1,pages:nRep,N,cum,total,dateStr})}
   for(let p=0;p<nRec;p++){
     prog(`Receipt page ${p+1} of ${nRec}`);await new Promise(r=>setTimeout(r,10));
     doc.addPage('a4','portrait');
@@ -2169,7 +2243,7 @@ async function makeDoc(prog,reportOnly){
 async function buildZip(withFull,prog){
   const {zipSync}=fflate;const base=reportBase(),files={};
   prog('Summary page');
-  files[`${base.replace('ExpenseReport','Summary')}.pdf`]=[new Uint8Array((await makeDoc(()=>{},true)).doc.output('arraybuffer')),{level:6}];
+  files[`${base}_Summary.pdf`]=[new Uint8Array((await makeDoc(()=>{},true)).doc.output('arraybuffer')),{level:6}];
   const tn=safeName(trip.name);
   for(let i=0;i<exps.length;i++){const e=exps[i];prog(`Receipt ${i+1} of ${exps.length}`);await new Promise(r=>setTimeout(r,5));
     (e.images||[]).forEach(()=>{});
@@ -2180,7 +2254,11 @@ async function buildZip(withFull,prog){
 async function exportPdf(){
   const missing=[['firstName','first name'],['lastName','last name'],['bank','bank'],['bankAddress','bank address'],['bic','BIC'],['iban','IBAN']].filter(([k])=>!S[k]).map(x=>x[1]);
   if(missing.length&&!await dlg({text:'Settings are missing: '+missing.join(', ')+'.\nGenerate the PDF anyway?',ok:'Generate anyway'}))return;
-  const bg=openSheet(`<h3>Building PDF…</h3><div class="sub" id="pg">Preparing</div>`);bg.dataset.lock='1';
+  const want=await dlg({text:'File name (without .pdf):',input:true,value:trip.fileName||suggestBase(),ok:'Create PDF'});
+  if(want===null)return;
+  curBase=cleanFile(want)||suggestBase();
+  if(trip.fileName!==curBase){trip.fileName=curBase;await DB.put('trips',trip)}
+  const bg=openSheet(`<h3>Building PDF…</h3><div class="sub" id="pg">Preparing</div>`,{x:false});bg.dataset.lock='1';
   try{
     const {doc,N}=await makeDoc(t=>{const e=bg.querySelector('#pg');if(e)e.textContent=t},false);
     const name=reportBase()+'.pdf';
@@ -2199,7 +2277,7 @@ async function exportPdf(){
     s.querySelector('#dw').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.append(a);a.click();setTimeout(()=>{a.remove()},1000)};
     s.querySelector('#zp').onclick=async()=>{
       const full=s.querySelector('#zf').checked;
-      const pb=openSheet('<h3>Building ZIP…</h3><div class="sub" id="zg">Preparing</div>');pb.dataset.lock='1';
+      const pb=openSheet('<h3>Building ZIP…</h3><div class="sub" id="zg">Preparing</div>',{x:false});pb.dataset.lock='1';
       try{const zb=await buildZip(full,t=>{const e=pb.querySelector('#zg');if(e)e.textContent=t});pb.close();window.__lastZip=zb;await deliver('ZIP ready',zb,reportBase()+'.zip','application/zip')}
       catch(err){console.error(err);pb.close();tell('ZIP creation failed: '+err.message)}};
     s.querySelector('#cl').onclick=()=>s.close();
@@ -2207,8 +2285,8 @@ async function exportPdf(){
   }catch(err){console.error(err);bg.close();tell('PDF generation failed: '+err.message)}
 }
 
-const APP_VERSION='1.6.0';
-const CHANGELOG=[{"v":"1.6.0","d":"2026-11-06","n":["Icons instead of emojis everywhere in the app; categories can be given any of 44 icons (your existing categories keep the closest matching icon)","Two sample trips (202610 Zürich and 202611 Espoo) with fake receipts marked SAMPLE come with a fresh install; delete them any time in My trips"]},{"v":"1.5.0","d":"2026-11-06","n":["Home page has four big buttons: Add receipt, Last trip, New trip, My trips","App icon with a black outline (reinstall the app to see it on the home screen)"]},{"v":"1.4.2","d":"2026-11-06","n":["A one-time “What’s new” window appears after the app has been updated"]},{"v":"1.4.1","d":"2026-11-06","n":["New trip: name, dates and country are asked together"]},{"v":"1.4.0","d":"2026-11-06","n":["Photo editor: the page edges are found automatically right after taking a photo, and corners and sides snap to strong edges while you drag","A round magnifier shows the spot above your finger while you drag a corner or side","New Mark total button in the editor: draw a box around the total and only that box is read for the amount","Warning before saving a receipt whose amount and date already exist in the trip","Trip status (Open, Submitted, Reimbursed), Mark as submitted after making the PDF, trip dates and country (preselects currency and reading language)","Split / exclusions: paid for colleague, personal or partial (amount or percent); the report and statistics count only the claimed amount","Backup can be protected with a standard ZIP password","New Statistics page: total per trip, per category and per month, with year and trip filters","PDF layout setting: 2 x 2 (default), 2 x 3, 1 x 2, 1 per page or Auto, plus Print on its own page for single receipts"]},{"v":"1.3.0","d":"2026-11-05","n":["Faster receipt reading: the language follows the currency (e.g. JPY reads Japanese, USD English)","For EUR and CHF the app remembers the last detected language and reuses it; if nothing is found it retries with all chosen languages"]},{"v":"1.2.1","d":"2026-11-05","n":["Phone bottom bar: app colors set to black (reinstall the app once to see it)"]},{"v":"1.2.0","d":"2026-11-05","n":["New home page: add a receipt to your last trip, open your trips or start a new one","Trips list is now its own page, newest first, with dates, receipt count and total","Photo editor simplified: drag a corner to fix perspective, drag a side to crop","Categories have icons; choose Other to type your own; edit categories and icons in Settings","Reads receipts offline (amount, currency, date, category guess) — suggestions only, you confirm","Language packs page: English, German, French and Italian built in, ~100 more downloadable","Backup: save everything as one ZIP and load it on another phone (replace or merge)","Export a ZIP with the summary PDF and every receipt as a separate JPEG","Pop-ups now say Insert instead of the web address","Bottom bar of the phone follows the chosen theme"]},{"v":"1.1.0","d":"2026-11-05","n":["Top bar with app name, version and a menu button for navigation","Settings reorganised: a short menu with a separate page for each group","New Appearance page: color themes and light / dark mode","Photo editor: perspective correction (drag the 4 corners)","Add PDF and image files as receipts (e.g. a train ticket from your email)","New receipts reuse the currency of the last receipt in the trip","Version number on the opening screen"]},{"v": "1.0.0", "d": "2026-11-05", "n": ["Renamed to Receipt Archive", "Version number and changelog in Settings", "Licensed under GPL-3.0", "Published on GitHub Pages so it can be installed on phones"]}, {"v": "0.3.0", "d": "2026-11-05", "n": ["Privacy information and license in Settings"]}, {"v": "0.2.0", "d": "2026-11-05", "n": ["Photo editor: crop, rotate and straighten after taking a picture", "Install button in Settings", "App icon and quick opening animation", "Layout fixes for phone screens"]}, {"v": "0.1.0", "d": "2026-11-05", "n": ["First version: receipts with photos, automatic exchange rates with manual override", "One-click PDF in the company format (report page plus numbered receipt scans)", "Settings for bank details, header fields and signature"]}];
+const APP_VERSION='1.7.0';
+const CHANGELOG=[{"v": "1.7.0", "d": "2026-11-06", "n": ["Close button (X) on every pop-up; forms with unsaved changes ask before discarding", "The receipt form keeps Save and Delete always visible at the bottom; rarely used options are under More options", "Report: page 1 now looks like the company template; with more than 20 receipts, page 1 has no signature and says the table continues, later pages carry a short header and the signature and total are on the last page", "You can edit the file name before the PDF or ZIP is created (suggested: YearMonth_TripName)", "When online, the app tells you if a new version is available (popup at each start, a refresh button and the new version number in the top bar)", "Settings > Appearance: switch all icons to emoji and back"]},{"v":"1.6.0","d":"2026-11-06","n":["Icons instead of emojis everywhere in the app; categories can be given any of 44 icons (your existing categories keep the closest matching icon)","Two sample trips (202610 Zürich and 202611 Espoo) with fake receipts marked SAMPLE come with a fresh install; delete them any time in My trips"]},{"v":"1.5.0","d":"2026-11-06","n":["Home page has four big buttons: Add receipt, Last trip, New trip, My trips","App icon with a black outline (reinstall the app to see it on the home screen)"]},{"v":"1.4.2","d":"2026-11-06","n":["A one-time “What’s new” window appears after the app has been updated"]},{"v":"1.4.1","d":"2026-11-06","n":["New trip: name, dates and country are asked together"]},{"v":"1.4.0","d":"2026-11-06","n":["Photo editor: the page edges are found automatically right after taking a photo, and corners and sides snap to strong edges while you drag","A round magnifier shows the spot above your finger while you drag a corner or side","New Mark total button in the editor: draw a box around the total and only that box is read for the amount","Warning before saving a receipt whose amount and date already exist in the trip","Trip status (Open, Submitted, Reimbursed), Mark as submitted after making the PDF, trip dates and country (preselects currency and reading language)","Split / exclusions: paid for colleague, personal or partial (amount or percent); the report and statistics count only the claimed amount","Backup can be protected with a standard ZIP password","New Statistics page: total per trip, per category and per month, with year and trip filters","PDF layout setting: 2 x 2 (default), 2 x 3, 1 x 2, 1 per page or Auto, plus Print on its own page for single receipts"]},{"v":"1.3.0","d":"2026-11-05","n":["Faster receipt reading: the language follows the currency (e.g. JPY reads Japanese, USD English)","For EUR and CHF the app remembers the last detected language and reuses it; if nothing is found it retries with all chosen languages"]},{"v":"1.2.1","d":"2026-11-05","n":["Phone bottom bar: app colors set to black (reinstall the app once to see it)"]},{"v":"1.2.0","d":"2026-11-05","n":["New home page: add a receipt to your last trip, open your trips or start a new one","Trips list is now its own page, newest first, with dates, receipt count and total","Photo editor simplified: drag a corner to fix perspective, drag a side to crop","Categories have icons; choose Other to type your own; edit categories and icons in Settings","Reads receipts offline (amount, currency, date, category guess) — suggestions only, you confirm","Language packs page: English, German, French and Italian built in, ~100 more downloadable","Backup: save everything as one ZIP and load it on another phone (replace or merge)","Export a ZIP with the summary PDF and every receipt as a separate JPEG","Pop-ups now say Insert instead of the web address","Bottom bar of the phone follows the chosen theme"]},{"v":"1.1.0","d":"2026-11-05","n":["Top bar with app name, version and a menu button for navigation","Settings reorganised: a short menu with a separate page for each group","New Appearance page: color themes and light / dark mode","Photo editor: perspective correction (drag the 4 corners)","Add PDF and image files as receipts (e.g. a train ticket from your email)","New receipts reuse the currency of the last receipt in the trip","Version number on the opening screen"]},{"v": "1.0.0", "d": "2026-11-05", "n": ["Renamed to Receipt Archive", "Version number and changelog in Settings", "Licensed under GPL-3.0", "Published on GitHub Pages so it can be installed on phones"]}, {"v": "0.3.0", "d": "2026-11-05", "n": ["Privacy information and license in Settings"]}, {"v": "0.2.0", "d": "2026-11-05", "n": ["Photo editor: crop, rotate and straighten after taking a picture", "Install button in Settings", "App icon and quick opening animation", "Layout fixes for phone screens"]}, {"v": "0.1.0", "d": "2026-11-05", "n": ["First version: receipts with photos, automatic exchange rates with manual override", "One-click PDF in the company format (report page plus numbered receipt scans)", "Settings for bank details, header fields and signature"]}];
 const LICENSE_TEXT="Receipt Archive\nCopyright (C) 2026 the Receipt Archive authors\n\nThis program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.\n\nThis program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.\n\nYou should have received a copy of the GNU General Public License along with this program (see the LICENSE file in the repository). If not, see https://www.gnu.org/licenses/gpl-3.0.html\n\nThird-party software included:\njsPDF (https://github.com/parallax/jsPDF), MIT License, Copyright (c) 2010-2021 James Hall; (c) 2015-2021 yWorks GmbH.\nPDF.js (https://github.com/mozilla/pdf.js), Apache License 2.0, Copyright Mozilla Foundation and contributors.\nTesseract.js (https://github.com/naptha/tesseract.js), Apache License 2.0, Copyright (c) 2018 tesseract.js contributors; Tesseract OCR engine and trained language data (Google / tessdata), Apache License 2.0.\nfflate (https://github.com/101arrowz/fflate), MIT License, Copyright (c) 2023 Arjun Barrett.";
 /* ---------- install ---------- */
 let deferredPrompt=null;
@@ -2287,6 +2365,31 @@ async function seedDemo(){
 /* ---------- PWA ---------- */
 function setupPwa(){if('serviceWorker' in navigator&&/^https?:/.test(location.protocol))navigator.serviceWorker.register('sw.js').catch(()=>{})}
 
+
+/* ---------- update check (online only) ---------- */
+function openUpdate(){
+  if(!upd)return;
+  const items=(upd.notes||[]).filter(c=>verGt(c.v,APP_VERSION)).slice(0,5);
+  const h=items.map(c=>`<div style="margin-bottom:12px"><b>${esc(c.v)}</b> <span class="sub">· ${esc(c.d||'')}</span><ul style="margin:6px 0 0;padding-left:20px">${(c.n||[]).map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`).join('');
+  const sh=openSheet(`<h3>New version ${esc(upd.version)} available</h3><div class="sub" style="margin-bottom:10px">You have ${esc(APP_VERSION)}. Your receipts stay on this phone.</div><div style="max-height:46vh;overflow:auto;margin-bottom:12px">${h||'<div class="sub">Improvements and fixes.</div>'}</div><button class="btn primary block" id="upGo">Update now</button><div style="height:10px"></div><button class="btn block" id="upLater">Later</button>`);
+  sh.querySelector('#upLater').onclick=()=>sh.close();
+  sh.querySelector('#upGo').onclick=async e=>{
+    e.target.disabled=true;e.target.textContent='Updating…';
+    try{await fetch('index.html',{cache:'reload'});await fetch('sw.js',{cache:'reload'});const reg=navigator.serviceWorker&&await navigator.serviceWorker.getRegistration();if(reg)await reg.update()}catch(err){}
+    location.reload();
+  };
+}
+async function checkUpdate(boot){
+  if(!navigator.onLine||!/^https?:/.test(location.protocol))return;
+  try{
+    const r=await fetch('version.json?'+Date.now(),{cache:'no-store'});if(!r.ok)return;
+    const j=await r.json();
+    if(j&&j.version&&verGt(j.version,APP_VERSION)){const was=upd&&upd.version;upd=j;if(was!==j.version)render();if(boot)openUpdate()}
+    else if(upd){upd=null;render()}
+  }catch(e){}
+}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkUpdate(false)});
+addEventListener('online',()=>checkUpdate(false));
 /* ---------- boot ---------- */
 $('#spv').textContent='Version '+APP_VERSION;
 setTimeout(()=>{const sp=$('#splash');if(sp){sp.classList.add('out');setTimeout(()=>sp.remove(),300)}},800);
@@ -2301,6 +2404,7 @@ setTimeout(()=>{const sp=$('#splash');if(sp){sp.classList.add('out');setTimeout(
   await render();
   whatsNew(first);
   preloadOcr();
+  setTimeout(()=>checkUpdate(true),1500);
 })();
 function preloadOcr(){
   /* quietly cache the built-in OCR files once, so reading receipts works offline */
