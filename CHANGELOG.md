@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.4.2 - 2026-11-06
+- A one-time "What's new" window appears after the app has been updated
+
 ## 1.4.1 - 2026-11-06
 - New trip: name, dates and country are asked together
 
