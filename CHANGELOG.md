@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.6.0 - 2026-11-06
+- Icons instead of emojis everywhere in the app; categories can be given any of 44 icons (existing categories keep the closest matching icon)
+- Two sample trips (202610 Zürich and 202611 Espoo) with fake receipts marked SAMPLE come with a fresh install; delete them any time in My trips
+
 ## 1.5.0 - 2026-11-06
 - Home page has four big buttons: Add receipt, Last trip, New trip, My trips
 - App icon with a black outline (reinstall the app to see it on the home screen)

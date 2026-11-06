@@ -14,7 +14,7 @@ Open https://dusiaclaw.github.io/ReceiptArchive/ in Chrome (Android) and use **S
 Edit `APP_VERSION` and `CHANGELOG` in `index.html` and `CHANGELOG.md` for each release. The app updates on the next online start.
 
 ## License
-GPL-3.0, see [LICENSE](LICENSE). Includes [jsPDF](https://github.com/parallax/jsPDF) (MIT), [PDF.js](https://github.com/mozilla/pdf.js) (Apache-2.0), [Tesseract.js](https://github.com/naptha/tesseract.js) (Apache-2.0, files in `ocr/`) and [fflate](https://github.com/101arrowz/fflate) (MIT).
+GPL-3.0, see [LICENSE](LICENSE). Includes [jsPDF](https://github.com/parallax/jsPDF) (MIT), [Tabler Icons](https://github.com/tabler/tabler-icons) (MIT), [PDF.js](https://github.com/mozilla/pdf.js) (Apache-2.0), [Tesseract.js](https://github.com/naptha/tesseract.js) (Apache-2.0, files in `ocr/`) and [fflate](https://github.com/101arrowz/fflate) (MIT).
 
 ## OCR files
 `ocr/` holds Tesseract.js, its WebAssembly core (~8 MB) and the built-in language files for English, German, French and Italian (~6.6 MB). Extra languages can be hosted in `ocr/lang/` as `<code>.traineddata.gz` and selected in Settings → Language packs.
